@@ -10,7 +10,11 @@ import Devoluciones from "./pages/devoluciones/devoluciones";
 
 import Sidebar, { SidebarItem } from "./components/Sidebar";
 import {
-  Boxes
+  House,
+  BookUp,
+  History,
+  LibraryBig,
+  ChartLine
 } from 'lucide-react'
 
 function App() {
@@ -20,7 +24,11 @@ function App() {
     <BrowserRouter>
       
     <Sidebar>
-      <SidebarItem icon={<Boxes size={20}/>} text="Inventory" active/>
+      <SidebarItem icon={<House size={20}/>} text="Inicio"/>
+      <SidebarItem icon={<BookUp size={20}/>} text="Préstamos"/>
+      <SidebarItem icon={<History size={20}/>} text="Historial"/>
+      <SidebarItem icon={<LibraryBig size={20}/>} text="Libros"/>
+      <SidebarItem icon={<ChartLine size={20}/>} text="Estadísticas"/>
 
     </Sidebar>
 

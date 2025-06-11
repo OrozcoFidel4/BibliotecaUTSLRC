@@ -1,35 +1,51 @@
 import { MoreVertical, ChevronLast, ChevronFirst } from "lucide-react"
-import { useContext, createContext, useState } from "react"
+import { useContext, createContext, useState, useEffect } from "react"
+import LogoUT from "../assets/UtLogo.png"
 
 const SidebarContext = createContext()
 
 export default function Sidebar({ children }) {
-  const [expanded, setExpanded] = useState(true)
+  const [expanded, setExpanded] = useState(() => window.innerWidth >= 1024)
+
+  useEffect(() => {
+  const mediaQuery = window.matchMedia("(min-width: 1024px)")
+
+  const handleResize = () => {
+    setExpanded(mediaQuery.matches)
+  }
+
+  // Set initial value and attach listener
+  handleResize()
+  mediaQuery.addEventListener("change", handleResize)
+
+  // Clean up on unmount
+  return () => mediaQuery.removeEventListener("change", handleResize)
+  }, [])
   
   return (
     <aside className="h-screen">
-      <nav className="h-full flex flex-col bg-white border-r shadow-sm">
-        <div className="p-4 pb-2 flex justify-between items-center">
-          {/* <img
-            src="https://img.logoipsum.com/243.svg"
+      <nav className="h-full flex flex-col bg-[#537473] border-r shadow-sm">
+        <div className="p-3 pb-2 border-b border-[#3d5352] justify-center items-center">
+          
+          <img
+            src={LogoUT}
             className={`overflow-hidden transition-all ${
               expanded ? "w-32" : "w-0"
             }`}
             alt=""
-          /> */}
-          <button
-            onClick={() => setExpanded((curr) => !curr)}
-            className="p-1.5 rounded-lg bg-gray-100 text-gray-800 hover:bg-gray-300 "
-          >
-            {expanded ? <ChevronFirst /> : <ChevronLast />}
-          </button>
+          />
+
+          <h4 className={`font-semibold overflow-hidden transition-all ${
+              expanded ? "w-48" : "w-0"
+            }`}>Sistema Bibliotecario</h4>
+          
         </div>
 
         <SidebarContext.Provider value={{ expanded }}>
-          <ul className="flex-1 px-3">{children}</ul>
+          <ul className="flex-1 px-3 mt-6">{children}</ul>
         </SidebarContext.Provider>
 
-        <div className="border-t flex p-3">
+        <div className="border-t border-[#3d5352] flex p-3">
           {/* <img
             src="https://ui-avatars.com/api/?background=c7d2fe&color=3730a3&bold=true"
             alt=""
@@ -43,7 +59,7 @@ export default function Sidebar({ children }) {
           >
             <div className="leading-4">
               <h4 className="font-semibold">John Doe</h4>
-              <span className="text-xs text-gray-600">johndoe@gmail.com</span>
+              <span className="text-xs text-gray-100">johndoe@gmail.com</span>
             </div>
             <MoreVertical size={20} />
           </div>
@@ -65,7 +81,7 @@ export function SidebarItem({ icon, text, active, alert }) {
         ${
           active
             ? "bg-gradient-to-tr from-indigo-200 to-indigo-100 text-indigo-800"
-            : "hover:bg-indigo-50 text-gray-600"
+            : "hover:bg-[#3d5352] text-white-100"
         }
     `}
     >
@@ -88,7 +104,7 @@ export function SidebarItem({ icon, text, active, alert }) {
       {!expanded && (
         <div
           className={`
-          absolute left-full rounded-md px-2 py-1 ml-6
+          absolute left-full rounded-md px-6 py-1 ml-6
           bg-indigo-100 text-indigo-800 text-sm
           invisible opacity-20 -translate-x-3 transition-all
           group-hover:visible group-hover:opacity-100 group-hover:translate-x-0
