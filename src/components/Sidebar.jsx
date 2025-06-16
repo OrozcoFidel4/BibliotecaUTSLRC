@@ -1,6 +1,9 @@
 import { MoreVertical, ChevronLast, ChevronFirst } from "lucide-react"
 import { useContext, createContext, useState, useEffect } from "react"
 import LogoUT from "../assets/UtLogo.png"
+import { useNavigate } from "react-router"
+
+
 
 const SidebarContext = createContext()
 
@@ -25,20 +28,23 @@ export default function Sidebar({ children }) {
   return (
     <aside className="h-screen">
       <nav className="h-full flex flex-col bg-[#537473] border-r shadow-sm">
-        <div className="p-3 pb-2 border-b border-[#3d5352] justify-center items-center">
-          
+        <div className="pt-8 pb-6 border-b border-[#3d5352] flex flex-col items-center px-4 space-x-2">
           <img
             src={LogoUT}
-            className={`overflow-hidden transition-all ${
+            className={`transition-all duration-300 ${
               expanded ? "w-32" : "w-0"
-            }`}
+            } overflow-hidden`}
             alt=""
           />
-
-          <h4 className={`font-semibold overflow-hidden transition-all ${
-              expanded ? "w-48" : "w-0"
-            }`}>Sistema Bibliotecario</h4>
-          
+          <h4
+            className={`font-semibold transition-all duration-300 whitespace-nowrap ${
+              expanded
+                ? "w-auto opacity-100 visible"
+                : "w-0 opacity-0 invisible"
+            }`}
+          >
+            Sistema Bibliotecario
+          </h4>
         </div>
 
         <SidebarContext.Provider value={{ expanded }}>
@@ -46,11 +52,7 @@ export default function Sidebar({ children }) {
         </SidebarContext.Provider>
 
         <div className="border-t border-[#3d5352] flex p-3">
-          {/* <img
-            src="https://ui-avatars.com/api/?background=c7d2fe&color=3730a3&bold=true"
-            alt=""
-            className="w-10 h-10 rounded-md"
-          /> */}
+          
           <div
             className={`
               flex justify-between items-center
@@ -69,50 +71,46 @@ export default function Sidebar({ children }) {
   )
 }
 
-export function SidebarItem({ icon, text, active, alert }) {
-  const { expanded } = useContext(SidebarContext)
-  
+export function SidebarItem({ icon, text, active, alert, navigateTo }) {
+  const { expanded } = useContext(SidebarContext);
+  const navigate = useNavigate();
+
+  const handleClick = () => {
+    navigate(navigateTo);
+  };
+
   return (
-    <li
+    <button
+      onClick={handleClick}
       className={`
         relative flex items-center py-2 px-3 my-1
-        font-medium rounded-md cursor-pointer
-        transition-colors group
-        ${
-          active
-            ? "bg-gradient-to-tr from-indigo-200 to-indigo-100 text-indigo-800"
-            : "hover:bg-[#3d5352] text-white-100"
+        font-medium rounded-md cursor-pointer transition-colors group w-full
+        ${active
+          ? "bg-white text-[#3d5352]"
+          : "hover:bg-[#3d5352] text-white"
         }
-    `}
+      `}
     >
-      {icon}
-      <span
-        className={`overflow-hidden transition-all ${
-          expanded ? "w-52 ml-3" : "w-0"
-        }`}
-      >
-        {text}
-      </span>
+      <div className="flex items-center w-full">
+        
+        <div className="flex items-center gap-2">
+          <div className="text-xl">{icon}</div>
+
+          <span
+            className={`
+              transition-all whitespace-nowrap overflow-hidden
+              ${expanded ? "w-auto opacity-100" : "w-0 opacity-0"}
+            `}
+          >
+            {text}
+          </span>
+        </div>
+      </div>
+
       {alert && (
-        <div
-          className={`absolute right-2 w-2 h-2 rounded bg-indigo-400 ${
-            expanded ? "" : "top-2"
-          }`}
-        />
+        <div className={`absolute right-2 w-2 h-2 rounded-full bg-yellow-400 ${expanded ? "" : "top-2"}`} />
       )}
 
-      {!expanded && (
-        <div
-          className={`
-          absolute left-full rounded-md px-6 py-1 ml-6
-          bg-indigo-100 text-indigo-800 text-sm
-          invisible opacity-20 -translate-x-3 transition-all
-          group-hover:visible group-hover:opacity-100 group-hover:translate-x-0
-      `}
-        >
-          {text}
-        </div>
-      )}
-    </li>
-  )
+    </button>
+  );
 }

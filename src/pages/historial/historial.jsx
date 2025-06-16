@@ -9,18 +9,16 @@ import {
   ChartLine
 } from 'lucide-react'
 
-const Prestamos = () => {
-
-  console.log('Prestamos')
+function Historial() {
   return (
     <Sidebar>
       <SidebarItem icon={<House size={20}/>} text="Inicio" navigateTo={"/home"}/>
-      <SidebarItem icon={<BookUp size={20}/>} text="Préstamos" navigateTo={"/prestamos"} active/>
-      <SidebarItem icon={<History size={20}/>} text="Historial" navigateTo={"/historial"}/>
+      <SidebarItem icon={<BookUp size={20}/>} text="Préstamos" navigateTo={"/prestamos"}/>
+      <SidebarItem icon={<History size={20}/>} text="Historial" navigateTo={"/historial"} active/>
       <SidebarItem icon={<LibraryBig size={20}/>} text="Libros" navigateTo={"/libros"}/>
       <SidebarItem icon={<ChartLine size={20}/>} text="Estadísticas" navigateTo={"/estadisticas"}/>
     </Sidebar>
   )
 }
 
-export default Prestamos
+export default Historial
