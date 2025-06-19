@@ -8,7 +8,7 @@ function Layout() {
   const location = useLocation();
   const currentPath = location.pathname;
   return (
-    <div className="h-screen flex bg-red-500">
+    <div className="h-screen flex">
       <Sidebar>
         <SidebarItem
           icon={<House size={20} />}
@@ -42,14 +42,14 @@ function Layout() {
         />
       </Sidebar>
 
-      {/* Contenedor de contenido */}
+      
       <div className="flex flex-col flex-1 min-w-0 bg-gray-200">
         <main className="flex-1 flex justify-center items-center">
           <Outlet />
         </main>
 
         <footer className="bg-gray-800 text-center p-3 text-sm text-white">
-          © FreeOnions. Todos los derechos reservados.
+          Universidad Tecnológica De San Luis Rio Colorado.
         </footer>
       </div>
     </div>
