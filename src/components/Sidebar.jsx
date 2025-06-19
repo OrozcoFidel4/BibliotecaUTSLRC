@@ -3,11 +3,11 @@ import { useContext, createContext, useState, useEffect } from "react"
 import LogoUT from "../assets/UtLogo.png"
 import { useNavigate } from "react-router"
 
-
-
 const SidebarContext = createContext()
 
 export default function Sidebar({ children }) {
+
+  const navigate = useNavigate()
   const [expanded, setExpanded] = useState(() => window.innerWidth >= 1024)
 
   useEffect(() => {
@@ -28,8 +28,9 @@ export default function Sidebar({ children }) {
   return (
     <aside className={`h-screen ${expanded ? "w-64" : "w-16"} transition-all duration-300`}>
       <nav className="h-full flex flex-col bg-[#537473] border-r shadow-sm">
-        <div className="pt-8 pb-6 border-b border-[#3d5352] flex flex-col items-center px-4 space-x-2">
+        <button className="pt-8 pb-6 border-b border-[#3d5352] flex flex-col items-center px-4 space-x-2" onClick={() => navigate("/")}>
           <img
+            
             src={LogoUT}
             className={`transition-all duration-300 ${
               expanded ? "w-32" : "w-0"
@@ -45,7 +46,7 @@ export default function Sidebar({ children }) {
           >
             Sistema Bibliotecario
           </h4>
-        </div>
+        </button>
 
         <SidebarContext.Provider value={{ expanded }}>
           <ul className="flex-1 px-3 mt-6">{children}</ul>
@@ -73,7 +74,7 @@ export default function Sidebar({ children }) {
 
 export function SidebarItem({ icon, text, active, alert, navigateTo }) {
   const { expanded } = useContext(SidebarContext);
-  const navigate = useNavigate();
+  const navigate = useNavigate()
 
   const handleClick = () => {
     navigate(navigateTo);
