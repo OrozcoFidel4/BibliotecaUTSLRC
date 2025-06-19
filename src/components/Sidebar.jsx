@@ -1,6 +1,7 @@
-import { MoreVertical, ChevronLast, ChevronFirst } from "lucide-react"
+import { MoreVertical } from "lucide-react"
 import { useContext, createContext, useState, useEffect } from "react"
 import LogoUT from "../assets/UtLogo.png"
+import LogoUTChico from "../assets/UtLogoChico.png"
 import { useNavigate } from "react-router"
 
 const SidebarContext = createContext()
@@ -27,16 +28,25 @@ export default function Sidebar({ children }) {
   
   return (
     <aside className={`h-screen ${expanded ? "w-64" : "w-16"} transition-all duration-300`}>
-      <nav className="h-full flex flex-col bg-[#537473] border-r shadow-sm">
-        <button className="pt-8 pb-6 border-b border-[#3d5352] flex flex-col items-center px-4 space-x-2" onClick={() => navigate("/")}>
-          <img
+      <nav className="h-full flex flex-col bg-[#537473]">
+        <button className={`pt-8 pb-6 border-b border-[#3d5352] flex flex-col items-center px-4 space-x-2
+                           ${expanded ?  "h-auto" : "h-0" } overflow-hidden` }  onClick={() => navigate("/")}>
+          {expanded && <img
             
             src={LogoUT}
             className={`transition-all duration-300 ${
-              expanded ? "w-32" : "w-0"
+              expanded ? "w-32" : "w-0 h-0"
             } overflow-hidden`}
             alt=""
-          />
+          />}
+
+          {!expanded && <img
+            
+            src={LogoUTChico}
+            className={`transition-all duration-300 h-auto w-auto ml-2 `}
+            alt=""
+          />}
+
           <h4
             className={`font-semibold transition-all duration-300 whitespace-nowrap text-gray-100 ${
               expanded
