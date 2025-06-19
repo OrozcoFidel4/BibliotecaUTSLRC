@@ -1,5 +1,5 @@
 import express from 'express';
-import bodyParser from 'body-parser';
+import cookieParser from 'cookie-parser';
 import mysql from 'mysql';
 import bcrypt from 'bcrypt';
 import cors from 'cors';
@@ -24,9 +24,13 @@ db.getConnection((err, connection) => {
     }
 });
 
-app.use(bodyParser.json());
+
 app.use(express.json());
-app.use(cors());
+app.use(cookieParser());
+app.use(cors({
+    origin: "http://localhost:5173",
+    credentials:true
+}));
 
 app.listen(4000, () => {
     console.log('Servidor corriendo en el puerto 4000');
@@ -40,3 +44,33 @@ app.get('/libros', (req, res) => {
         res.send(results);
     });
 });
+
+// API Login Request
+app.post('/api/login', (req,res)=> {
+    console.log('BODY', req.body);
+    const {email, password} = req.body;
+
+ if (email === 'admin@gmail.com' && password === '123456') {
+    console.log(email,password)
+    res.cookie('token', 'valor-de-token', {
+      httpOnly: true,
+      sameSite: 'Lax',
+      maxAge: 24 * 60 * 60 * 1000 // 1 día
+    });
+    return res.json({ message: 'Login exitoso' });
+  }
+
+  return res.status(401).json({ error: 'Credenciales incorrectas' });
+});
+
+
+// Ruta protegida
+app.get('/api/usuario', (req, res) => {
+  const { token } = req.cookies;
+  if (token === 'valor-de-token') {
+    return res.json({ email: 'admin@email.com' });
+  }
+  return res.status(401).json({ error: 'No autorizado' });
+});
+
+
