@@ -9,6 +9,7 @@ import Prestamos from "./pages/prestamos/prestamos";
 import Estadisticas from "./pages/estadisticas/estadisticas";
 import Historial from "./pages/historial/historial"; 
 import Libros from "./pages/libros/libros";
+import Layout from "./layout/Layout";
 
 function App() {
 
@@ -18,12 +19,15 @@ function App() {
 
 
       <Routes>
-        <Route path="/" element={<Login />}/>
-        <Route path="/home" element={<Home />}/>
-        <Route path="/prestamos" element={<Prestamos />}/>
-        <Route path="/historial" element={<Historial />}/>
-        <Route path="/libros" element={<Libros />}/>
-        <Route path="/estadisticas" element={<Estadisticas />}/>
+        <Route path="/login" element={<Login />}/>
+        
+        <Route path="/" element={<Layout />}>
+          <Route index element={<Home />}/>
+          <Route path="prestamos" element={<Prestamos />}/>
+          <Route path="historial" element={<Historial />}/>
+          <Route path="libros" element={<Libros />}/>
+          <Route path="estadisticas" element={<Estadisticas />}/>
+        </Route>
 
       </Routes>
 

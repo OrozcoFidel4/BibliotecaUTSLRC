@@ -26,7 +26,7 @@ export default function Sidebar({ children }) {
   }, [])
   
   return (
-    <aside className="h-screen">
+    <aside className={`h-screen ${expanded ? "w-64" : "w-16"} transition-all duration-300`}>
       <nav className="h-full flex flex-col bg-[#537473] border-r shadow-sm">
         <div className="pt-8 pb-6 border-b border-[#3d5352] flex flex-col items-center px-4 space-x-2">
           <img
@@ -37,7 +37,7 @@ export default function Sidebar({ children }) {
             alt=""
           />
           <h4
-            className={`font-semibold transition-all duration-300 whitespace-nowrap ${
+            className={`font-semibold transition-all duration-300 whitespace-nowrap text-gray-100 ${
               expanded
                 ? "w-auto opacity-100 visible"
                 : "w-0 opacity-0 invisible"
@@ -60,10 +60,10 @@ export default function Sidebar({ children }) {
           `}
           >
             <div className="leading-4">
-              <h4 className="font-semibold">John Doe</h4>
+              <h4 className="font-semibold text-gray-100">John Doe</h4>
               <span className="text-xs text-gray-100">johndoe@gmail.com</span>
             </div>
-            <MoreVertical size={20} />
+            <MoreVertical size={20} className="text-gray-100"/>
           </div>
         </div>
       </nav>
