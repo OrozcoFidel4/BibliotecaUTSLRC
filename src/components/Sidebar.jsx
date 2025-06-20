@@ -1,4 +1,4 @@
-import { MoreVertical } from "lucide-react"
+import { LogOut } from "lucide-react"
 import { useContext, createContext, useState, useEffect } from "react"
 import LogoUT from "../assets/UtLogo.png"
 import LogoUTChico from "../assets/UtLogoChico.png"
@@ -74,7 +74,9 @@ export default function Sidebar({ children }) {
               <h4 className="font-semibold text-gray-100">John Doe</h4>
               <span className="text-xs text-gray-100">johndoe@gmail.com</span>
             </div>
-            <MoreVertical size={20} className="text-gray-100"/>
+            <button className="h-auto w-auto p-2 rounded-lg hover:bg-[#3d5352]">
+              <LogOut size={20} className="text-gray-100"/>
+            </button>
           </div>
         </div>
       </nav>
