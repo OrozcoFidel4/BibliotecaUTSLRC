@@ -16,7 +16,7 @@ import Layout from "./layout/Layout";
 function App() {
   const { usuario, loading } = useAuth();
 
-  if (loading) return <div>Cargando...</div>;
+  if (loading) return <div className="text-gray-500 m-6">Cargando...</div>;
 
   return (
     <BrowserRouter>
