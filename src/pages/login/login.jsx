@@ -23,13 +23,13 @@ const Login = () => {
       <div className='h-94 w-94 bg-[#537473] flex flex-col items-center justify-center rounded-xl shadow-xl'>
         <h1 className="text-white text-2xl font-semibold mb-4">Iniciar Sesion</h1>
         <input
-         className='bg-gray-100 w-72 h-12 p-6 m-2 rounded-lg'
+         className='bg-gray-50 w-72 h-12 p-6 m-2 rounded-lg'
           type="email" 
           placeholder='Correo Electronico'
           value={email}
           onChange={e => setEmail(e.target.value)}/>
         <input 
-          className='bg-gray-100 w-72 h-12 p-6 m-2 rounded-lg'
+          className='bg-gray-50 w-72 h-12 p-6 m-2 rounded-lg'
           type="password"
           placeholder='Contraseña' 
           value={password}

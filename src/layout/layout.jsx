@@ -44,7 +44,7 @@ function Layout() {
 
       
       <div className="flex flex-col flex-1 min-w-0 bg-gray-200">
-        <main className="flex-1 flex justify-center items-center">
+        <main className="flex-1 overflow-auto px-4 py-6">
           <Outlet />
         </main>
 
