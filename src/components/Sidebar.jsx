@@ -3,10 +3,21 @@ import { useContext, createContext, useState, useEffect } from "react"
 import LogoUT from "../assets/UtLogo.png"
 import LogoUTChico from "../assets/UtLogoChico.png"
 import { useNavigate } from "react-router"
+import { useAuth } from "../Auth/AuthContext"
 
 const SidebarContext = createContext()
 
 export default function Sidebar({ children }) {
+
+  const{logout} = useAuth();
+
+  const logOut = async () => {
+    try {
+      await logout();
+    } catch (error){
+      alert("Error al cerrar sesion")
+    }
+  };
 
   const navigate = useNavigate()
   const [expanded, setExpanded] = useState(() => window.innerWidth >= 1024)
@@ -74,7 +85,7 @@ export default function Sidebar({ children }) {
               <h4 className="font-semibold text-gray-100">John Doe</h4>
               <span className="text-xs text-gray-100">johndoe@gmail.com</span>
             </div>
-            <button className="h-auto w-auto p-2 rounded-lg hover:bg-[#3d5352]">
+            <button className="h-auto w-auto p-2 rounded-lg hover:bg-[#3d5352]" onClick={logOut}>
               <LogOut size={20} className="text-gray-100"/>
             </button>
           </div>

@@ -74,3 +74,13 @@ app.get('/api/usuario', (req, res) => {
 });
 
 
+app.post('/api/logout', (req, res) => {
+  res.clearCookie('token', {
+    httpOnly: true,
+    sameSite: 'Lax',
+    secure: false // usa true si estás en HTTPS
+  });
+  return res.json({ message: 'Logout exitoso' });
+});
+
+

@@ -24,11 +24,12 @@ export const AuthProvider = ({ children }) => {
     setUsuario(res.data);
   };
 
-  const logout = () => {
-    setUsuario(null);
-    // También puedes limpiar cookie del backend si agregas /api/logout
-  };
-
+const logout = async () => {
+  await axios.post("http://localhost:4000/api/logout", {}, {
+    withCredentials: true
+  });
+  setUsuario(null); // borra el estado en React también
+};
   return (
     <AuthContext.Provider value={{ usuario, login, logout, loading }}>
       {children}
