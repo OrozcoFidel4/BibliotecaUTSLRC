@@ -1,9 +1,9 @@
 import express from 'express';
 import cookieParser from 'cookie-parser';
-import mysql from 'mysql2';
-import bcrypt from 'bcrypt';
+import mysql from 'mysql2/promise';
+//import bcrypt from 'bcrypt';
 import cors from 'cors';
-import jwt from 'jsonwebtoken';
+//import jwt from 'jsonwebtoken';
 
 const app = express();
 
@@ -13,16 +13,22 @@ const app = express();
     user: 'root',
     password: 'password',
     database: 'libros',
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0,
 }); 
 
-db.getConnection((err, connection) => {
-    if (err) {
-        console.error('Error de conexión a la base de datos:', err);
-    } else {
-        console.log('Conexión a la base de datos establecida correctamente');
-        connection.release();
-    }
-});
+
+async function probarConexion() {
+  try {
+    const connection = await db.getConnection();
+    console.log('Conexión a la base de datos establecida correctamente');
+    connection.release();
+  } catch (error) {
+    console.error('Error de conexión a la base de datos:', error);
+  }
+}
+probarConexion();
 
 
 app.use(express.json());
@@ -37,13 +43,34 @@ app.listen(4000, () => {
 });
 
 
-app.get('/libros', (req, res) => {
-    const { id } = req.params;
-    db.query('SELECT * FROM libros', [id], (err, results) => {
-        if (err) return res.status(500).send(err);
-        res.send(results);
-    });
+app.get("/libros", async (req, res) => {
+  const { limit = 20, offset = 0, search = "" } = req.query;
+
+  try {
+    const connection = await db.getConnection();
+
+    const searchQuery = `%${search}%`;
+
+    const [libros] = await connection.query(
+      `SELECT * FROM libros WHERE titulo LIKE ? OR autor LIKE ? LIMIT ? OFFSET ?`,
+      [searchQuery, searchQuery, parseInt(limit), parseInt(offset)]
+    );
+
+    const [[{ total }]] = await connection.query(
+      `SELECT COUNT(*) as total FROM libros WHERE titulo LIKE ? OR autor LIKE ?`,
+      [searchQuery, searchQuery]
+    );
+
+    connection.release();
+
+    res.json({ data: libros, total });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error al obtener libros" });
+  }
 });
+
+
 
 // API Login Request
 app.post('/api/login', (req,res)=> {
