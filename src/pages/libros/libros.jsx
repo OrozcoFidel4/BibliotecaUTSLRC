@@ -6,7 +6,7 @@ function Libros() {
   const [libros, setLibros] = useState([]);
   const [paginaActual, setPaginaActual] = useState(1);
   const [totalPaginas, setTotalPaginas] = useState(1);
-  const [limitePorPagina, setLimitePorPagina] = useState(20);
+  const [limitePorPagina, setLimitePorPagina] = useState(10);
   const [search, setSearch] = useState("");
 
 
@@ -44,29 +44,20 @@ function Libros() {
     obtenerLibros();
   }, [paginaActual, limitePorPagina, search]);
 
+  //Cambiar titulo a tipo oracion
+  function tipoTitulo(texto) {
+    return texto
+      .toLowerCase()
+      .split(" ")
+      .map(palabra => palabra.charAt(0).toUpperCase() + palabra.slice(1))
+      .join(" ");
+  }
 
   return (
-    <div className="flex flex-col h-full w-full px-16 pt-6">
+    <div className="flex flex-col min-h-screen w-full px-16 pt-6">
       <div className="font-bold text-5xl mb-2">Libros</div>
       <div className="text-xl mb-4">Listado de Libros en Biblioteca</div>
 
-      {/* Selector de libros por página */}
-      <div className="flex justify-end mb-4 gap-2 items-center">
-        <label>Libros por página:</label>
-        <select
-          value={limitePorPagina}
-          onChange={(e) => {
-            setPaginaActual(1);
-            setLimitePorPagina(parseInt(e.target.value));
-          }}
-          className="border rounded px-2 py-1"
-        >
-          <option value="10">10</option>
-          <option value="20">20</option>
-          <option value="50">50</option>
-          <option value="100">100</option>
-        </select>
-      </div>
 
       {/* Input de búsqueda */}
       <input
@@ -83,14 +74,15 @@ function Libros() {
       />
 
       {/* Tabla de libros */}
-      <div className="h-full w-full">
-        <div className="overflow-hidden rounded-lg shadow-md mb-24">
+      <div className="flex-grow w-full">
+        <div className="overflow-hidden rounded-lg shadow-md mb-8">
           <table className="min-w-full bg-white">
             <thead>
               <tr className="hover:bg-gray-100 cursor-pointer">
-                <th className="py-2 px-4 border-gray-400">Disponibles</th>
+                <th className="py-2 px-4 border-gray-400">ISBN</th>
                 <th className="py-2 px-4 border-gray-400">Título</th>
                 <th className="py-2 px-4 border-gray-400">Autor</th>
+                <th className="py-2 px-4 border-gray-400">Disponibles</th>
                 <th className="py-2 px-4 border-gray-400">Edición</th>
                 <th className="py-2 px-4 border-gray-400"></th>
               </tr>
@@ -99,29 +91,53 @@ function Libros() {
               {libros.map((libro, index) => (
                 <tr key={index} className="hover:bg-gray-100 cursor-pointer">
                   <td className="py-2 px-4 border-t border-gray-400 font-bold">
+                    {libro.ISBN}
+                  </td>
+                  <td className="py-2 px-4 border-t border-gray-400 text-gray-500 text-sm">
+                    {tipoTitulo(libro.titulo)}
+                  </td>
+                  <td className="py-2 px-4 border-t border-gray-400 text-gray-500 text-sm">
+                    {tipoTitulo(libro.autor)}
+                  </td>
+                  <td className="py-2 px-4 border-t border-gray-400 text-gray-500 text-sm">
                     {libro.cantidad_total_en_existencia}
                   </td>
-                  <td className="py-2 px-4 border-t border-gray-400 text-gray-500">
-                    {libro.titulo}
-                  </td>
-                  <td className="py-2 px-4 border-t border-gray-400 text-gray-500">
-                    {libro.autor}
-                  </td>
-                  <td className="py-2 px-4 border-t border-gray-400 text-gray-500">
-                    {libro.edicion}
+                  <td className="py-2 px-4 border-t border-gray-400 text-gray-500 text-sm">
+                    {tipoTitulo(libro.edicion)}
                   </td>
                   <td className="py-2 px-4 border-t border-gray-400">
                     <button className="h-8 w-24 mx-2 bg-[#88073f] text-gray-100 rounded-lg hover:bg-[#480422]">
-                      Devolver
+                      Préstamo
                     </button>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
+        </div>
 
-          {/* Controles de paginación al final de la tabla */}
-          <div className="flex justify-end mt-4 pr-4 gap-2">
+        <div className="flex flex-row justify-between items-center">
+        
+        {/* Selector de libros por página */}
+          <div className="flex justify-end mb-4 gap-2 items-center">
+            <label>Libros por página:</label>
+            <select
+              value={limitePorPagina}
+              onChange={(e) => {
+                setPaginaActual(1);
+                setLimitePorPagina(parseInt(e.target.value));
+              }}
+              className="bg-gray-300 rounded p-1 hover:bg-gray-400 disabled:opacity-50" 
+            >
+              <option className="bg-gray-300 hover:bg-gray-300" value="10">10</option>
+              <option value="20">20</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+            </select>
+          </div>
+
+        {/* Controles de paginación al final de la tabla */}
+          <div className="flex justify-end pr-4 gap-2 mb-2">
             <button
               onClick={() => setPaginaActual((prev) => Math.max(prev - 1, 1))}
               disabled={paginaActual === 1}
@@ -144,7 +160,9 @@ function Libros() {
               Siguiente
             </button>
           </div>
+  
         </div>
+
       </div>
     </div>
   );
