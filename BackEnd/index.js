@@ -52,13 +52,15 @@ app.get("/libros", async (req, res) => {
     const searchQuery = `%${search}%`;
 
     const [libros] = await connection.query(
-      `SELECT * FROM libros WHERE titulo LIKE ? OR autor LIKE ? LIMIT ? OFFSET ?`,
-      [searchQuery, searchQuery, parseInt(limit), parseInt(offset)]
+      `SELECT * FROM libros 
+       WHERE titulo LIKE ? OR autor LIKE ? OR ISBN LIKE ? LIMIT ? OFFSET ?`,
+      [searchQuery, searchQuery, searchQuery, parseInt(limit), parseInt(offset)]  
     );
 
     const [[{ total }]] = await connection.query(
-      `SELECT COUNT(*) as total FROM libros WHERE titulo LIKE ? OR autor LIKE ?`,
-      [searchQuery, searchQuery]
+      `SELECT COUNT(*) as total FROM libros 
+       WHERE titulo LIKE ? OR autor LIKE ? OR ISBN LIKE ?`,  
+      [searchQuery, searchQuery, searchQuery]
     );
 
     connection.release();
