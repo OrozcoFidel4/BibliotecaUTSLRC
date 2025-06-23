@@ -99,7 +99,7 @@ function Libros() {
                   <td className="py-2 px-4 border-t border-gray-400 text-gray-500 text-sm">
                     {tipoTitulo(libro.autor)}
                   </td>
-                  <td className="py-2 px-4 border-t border-gray-400 text-gray-500 text-sm">
+                  <td className="py-2 px-4 border-t border-gray-400 text-gray-500 text-sm text-center">
                     {libro.cantidad_total_en_existencia}
                   </td>
                   <td className="py-2 px-4 border-t border-gray-400 text-gray-500 text-sm">
