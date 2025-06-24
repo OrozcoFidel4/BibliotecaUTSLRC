@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Modal from "../../components/Modal";
 
 function Libros() {
@@ -15,6 +15,7 @@ function Libros() {
   const [fechaPrestamo, setFechaPrestamo] = useState("");
   const [fechaDevolucion, setFechaDevolucion] = useState("");
   const [nombreSolicitante, setNombreSolicitante] = useState("");
+  const [nombreSeleccionado, setNombreSeleccionado] = useState(false);
   const [sugerencias, setSugerencias] = useState([]);
   const [mostrarSugerencias, setMostrarSugerencias] = useState(false);
 
@@ -51,13 +52,14 @@ function Libros() {
       setFechaPrestamo(hoy);
       setFechaDevolucion("");
       setNombreSolicitante("");
+      setNombreSeleccionado(false);
       setSugerencias([]);
       setMostrarSugerencias(false);
     }
   }, [open]);
 
   useEffect(() => {
-    if (!open || nombreSolicitante.trim() === "") {
+    if (!open || nombreSolicitante.trim() === "" || nombreSeleccionado) {
       setSugerencias([]);
       setMostrarSugerencias(false);
       return;
@@ -81,7 +83,7 @@ function Libros() {
     }, 300);
 
     return () => clearTimeout(timeoutId);
-  }, [nombreSolicitante, open]);
+  }, [nombreSolicitante, open, nombreSeleccionado]);
 
   function tipoTitulo(texto) {
     return texto
@@ -137,6 +139,21 @@ function Libros() {
     }
   };
 
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (inputRef.current && !inputRef.current.contains(event.target)) {
+        setMostrarSugerencias(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   return (
     <div className="flex flex-col min-h-screen w-full px-16 pt-6">
       <div className="font-bold text-5xl mb-2">Libros</div>
@@ -144,7 +161,6 @@ function Libros() {
         Listado de Libros en Biblioteca
       </div>
 
-      {/* Input de búsqueda */}
       <input
         className={`bg-white w-72 px-4 py-2 mb-4 self-end rounded-lg shadow-md ${
           expanded ? "h-auto" : "hidden"
@@ -158,7 +174,6 @@ function Libros() {
         }}
       />
 
-      {/* Tabla de libros */}
       <div className="flex-grow w-full">
         <div className="overflow-hidden rounded-lg shadow-md mb-8">
           <table className="min-w-full bg-white">
@@ -174,7 +189,11 @@ function Libros() {
             </thead>
             <tbody>
               {libros.map((libro, index) => (
-                <tr key={index} className="hover:bg-gray-100 cursor-pointer">
+                <tr
+                  key={index}
+                  className="hover:bg-gray-100 cursor-pointer"
+                  onClick={() => abrirModalPrestamo(libro)}
+                >
                   <td className="py-2 px-4 border-t border-gray-400 font-bold">
                     {libro.ISBN}
                   </td>
@@ -205,7 +224,6 @@ function Libros() {
         </div>
 
         <div className="flex flex-row justify-between items-center">
-          {/* Selector de libros por página */}
           <div className="flex justify-end mb-4 gap-2 items-center">
             <label>Libros por página:</label>
             <select
@@ -216,16 +234,13 @@ function Libros() {
               }}
               className="bg-gray-300 rounded p-1 hover:bg-gray-400 disabled:opacity-50"
             >
-              <option className="bg-gray-300 hover:bg-gray-300" value="10">
-                10
-              </option>
+              <option value="10">10</option>
               <option value="20">20</option>
               <option value="50">50</option>
               <option value="100">100</option>
             </select>
           </div>
 
-          {/* Controles de paginación al final de la tabla */}
           <div className="flex justify-end pr-4 gap-2 mb-2">
             <button
               onClick={() => setPaginaActual((prev) => Math.max(prev - 1, 1))}
@@ -234,11 +249,9 @@ function Libros() {
             >
               Anterior
             </button>
-
             <span className="py-2 px-4 self-center">
               Página {paginaActual} de {totalPaginas}
             </span>
-
             <button
               onClick={() =>
                 setPaginaActual((prev) => Math.min(prev + 1, totalPaginas))
@@ -253,80 +266,91 @@ function Libros() {
       </div>
 
       <Modal open={open} onClose={() => setOpen(false)}>
-        <div className="text-center w-180">
+        <div className="text-center w-160">
           <h3 className="text-lg font-black">Crear Préstamo</h3>
           <p className="text-sm text-gray-500 ">
             Captura los datos para el préstamo
           </p>
 
-          <div className="flex flex-row justify-around items-start mt-6 mb-4">
-
+          <div className="flex flex-row justify-stretch items-start mt-8 mb-8">
             {libroSeleccionado && (
-              <div className="text-left mx-3 justify-center">
-                
+              <div className="text-left mx-3 w-64 flex-none border-r-2 border-gray-300 ">
+                {/* <h4 className="font-semibold mb-1">ISBN</h4>
+                <p className="text-md text-gray-500 pb-2 mr-4">
+                  {tipoTitulo(libroSeleccionado.ISBN)}
+                </p> */}
+
                 <h4 className="font-semibold mb-1">Titulo</h4>
-                <p className="text-md text-gray-500 pb-2">
+                <p className="text-md text-gray-500 pb-2 mr-4">
                   {tipoTitulo(libroSeleccionado.titulo)}
                 </p>
-
                 <h4 className="font-semibold mb-1">Autor</h4>
-                <p className="text-md text-gray-500">
+                <p className="text-md text-gray-500 mr-4">
                   {tipoTitulo(libroSeleccionado.autor)}
                 </p>
-
               </div>
             )}
 
-            
+            <div className="text-left mx-3 flex-1">
+              <div className="flex flex-row justify-between items-center">
+                <div>
+                  <h4 className="font-semibold mb-1">Fecha De Préstamo</h4>
+                  <input
+                    type="date"
+                    className="w-full bg-white rounded-lg p-2 rounded mb-2 shadow-lg"
+                    value={fechaPrestamo}
+                    onChange={(e) => setFechaPrestamo(e.target.value)}
+                    disabled={true}
+                  />
+                </div>
 
+                <div>
+                  <h4 className="font-semibold mb-1">Fecha De Devolución</h4>
+                  <input
+                    type="date"
+                    className="w-full bg-white rounded-lg p-2 rounded mb-2 shadow-lg"
+                    value={fechaDevolucion}
+                    onChange={(e) => setFechaDevolucion(e.target.value)}
+                  />
+                </div>
+              </div>
 
-            <div>
-              <input
-              type="date"
-              className="w-full border p-2 rounded mb-2"
-              value={fechaPrestamo}
-              onChange={(e) => setFechaPrestamo(e.target.value)}
-              disabled={true}
-            />
+              <h4 className="font-semibold mb-1">Alumno</h4>
+              <div ref={inputRef} className="relative">
+                <input
+                  type="search"
+                  placeholder="Buscar"
+                  className="w-full bg-white rounded-lg p-2 rounded mb-2 shadow-lg"
+                  value={nombreSolicitante}
+                  onChange={(e) => {
+                    setNombreSeleccionado(false);
+                    setNombreSolicitante(e.target.value);
+                  }}
+                />
 
-              <input
-              type="date"
-              className="w-full border p-2 rounded mb-2"
-              value={fechaDevolucion}
-              onChange={(e) => setFechaDevolucion(e.target.value)}
-              />
-
-              <input
-                type="text"
-                placeholder="Nombre del solicitante"
-                className="w-full border p-2 rounded mb-2"
-                value={nombreSolicitante}
-                onChange={(e) => setNombreSolicitante(e.target.value)}
-              />
-
+                {mostrarSugerencias && sugerencias.length > 0 && (
+                  <ul className="absolute z-10 bg-white border border-gray-300 w-full max-h-48 overflow-auto rounded shadow-md">
+                    {sugerencias.map((alumno, index) => {
+                      const nombreCompleto = `${alumno.NOMBRE} ${alumno.APELLIDO_PATERNO} ${alumno.APELLIDO_MATERNO}`;
+                      return (
+                        <li
+                          key={index}
+                          className="cursor-pointer px-4 py-2 hover:bg-gray-200"
+                          onClick={() => {
+                            setNombreSolicitante(nombreCompleto);
+                            setNombreSeleccionado(true);
+                            setMostrarSugerencias(false);
+                          }}
+                        >
+                          {nombreCompleto}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </div>
             </div>
-
           </div>
-
-          {mostrarSugerencias && sugerencias.length > 0 && (
-                    <ul className="absolute z-10 bg-white border border-gray-300 w-full max-h-48 overflow-auto rounded shadow-md">
-                      {sugerencias.map((alumno, index) => {
-                        const nombreCompleto = `${alumno.NOMBRE} ${alumno.APELLIDO_PATERNO} ${alumno.APELLIDO_MATERNO}`;
-                        return (
-                          <li
-                            key={index}
-                            className="cursor-pointer px-4 py-2 hover:bg-gray-200"
-                            onClick={() => {
-                              setNombreSolicitante(nombreCompleto);
-                              setMostrarSugerencias(false);
-                            }}
-                          >
-                            {nombreCompleto}
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  )}
 
           <div className="flex gap-4">
             <button
