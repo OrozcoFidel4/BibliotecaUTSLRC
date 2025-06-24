@@ -1,8 +1,11 @@
-import React from "react";
 import { useState, useEffect } from "react";
+
+
 
 function Prestamos() {
   const [expanded, setExpanded] = useState(() => window.innerWidth >= 1024);
+  const [prestamos, setPrestamos] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(min-width: 1024px)");
@@ -19,13 +22,33 @@ function Prestamos() {
     return () => mediaQuery.removeEventListener("change", handleResize);
   }, []);
 
+    useEffect(() => {
+    const fetchPrestamos = async () => {
+      try {
+        const res = await fetch('http://localhost:4000/prestamos/activos');
+        const data = await res.json();
+        setPrestamos(data.data);
+      } catch (error) {
+        console.error('Error al cargar préstamos activos:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPrestamos();
+  }, []);
+
+  if (loading) return <p>Cargando préstamos activos...</p>;
+
+  if (prestamos.length === 0) return <p>No hay préstamos activos.</p>;
+
   return (
     <div className="flex flex-col h-full w-full px-16 pt-6">
       <div className="font-bold text-5xl mb-2">Préstamos</div>
 
       <div className="text-xl mb-12">Listado de Préstamos en Activo</div>
 
-      <input
+     <input
         className={`bg-white w-72 px-4 py-2 mb-4 self-end rounded-lg shadow-md
                            ${expanded ?  "h-auto" : "hidden" } overflow-hidden` }
         type="text"
@@ -37,114 +60,31 @@ function Prestamos() {
           <table className="min-w-full bg-white">
             <thead>
               <tr className="hover:bg-gray-100 cursor-pointer">
-                <th className="py-2 px-4 border-gray-400">ISBN</th>
-                <th className="py-2 px-4 border-gray-400">Título</th>
+                <th className="py-2 px-4 border-gray-400">Titulo</th>
                 <th className="py-2 px-4 border-gray-400">Autor</th>
-                <th className="py-2 px-4 border-gray-400">Edición</th>
+                <th className="py-2 px-4 border-gray-400">Alumno</th>
+                <th className="py-2 px-4 border-gray-400">Fecha Salida</th>
+                <th className="py-2 px-4 border-gray-400">Fecha devolucion</th>
                 <th className="py-2 px-4 border-gray-400"></th>
               </tr>
             </thead>
             <tbody>
-              <tr className="hover:bg-gray-100 cursor-pointer">
-                <td className="py-2 px-4 border-t border-gray-400 font-bold">
-                  9780875847405
-                </td>
-                <td className="py-2 px-4 border-t border-gray-400 text-gray-500">
-                  DESARROLLO HUMANO
-                </td>
-                <td className="py-2 px-4 border-t border-gray-400 text-gray-500">
-                  DIANE E. PAPALIA GABRIELA MARTORELL
-                </td>
-                <td className="py-2 px-4 border-t border-gray-400 text-gray-500">
-                  DECIMOTERCERA EDICIÓN
-                </td>
-                <td className="py-2 px-4 border-t border-gray-400">
-                  <button className="h-8 w-24 mx-2 bg-[#88073f] text-gray-100 rounded-lg hover:bg-[#480422]">
-                    Devolver
-                  </button>
-                </td>
-              </tr>
+              {prestamos.map((p) => (
+            <tr key={p.id } className="hover:bg-gray-100">
+              <td className="border px-4 py-2">{p.titulo}</td>
+              <td className="border px-4 py-2">{p.autor}</td>
+              <td className="border px-4 py-2">{p.nombre_solicitante}</td>
+              <td className="border px-4 py-2">{p.fecha_prestamo}</td>
+              <td className="border px-4 py-2">{p.fecha_devolucion}</td>
+              <td className="border px-4 py-2">
+                <button
+                className="h-8 w-24 mx-2 bg-[#88073f] text-gray-100 rounded-lg hover:bg-[#480422]"
 
-              <tr className="hover:bg-gray-100 cursor-pointer">
-                <td className="py-2 px-4 border-t border-gray-400 font-bold">
-                  9780875847405
-                </td>
-                <td className="py-2 px-4 border-t border-gray-400 text-gray-500">
-                  DESARROLLO HUMANO
-                </td>
-                <td className="py-2 px-4 border-t border-gray-400 text-gray-500">
-                  DIANE E. PAPALIA GABRIELA MARTORELL
-                </td>
-                <td className="py-2 px-4 border-t border-gray-400 text-gray-500">
-                  DECIMOTERCERA EDICIÓN
-                </td>
-                <td className="py-2 px-4 border-t border-gray-400">
-                  <button className="h-8 w-24 mx-2 bg-[#88073f] text-gray-100 rounded-lg hover:bg-[#480422]">
-                    Devolver
-                  </button>
-                </td>
-              </tr>
-
-              <tr className="hover:bg-gray-100 cursor-pointer">
-                <td className="py-2 px-4 border-t border-gray-400 font-bold">
-                  9780875847405
-                </td>
-                <td className="py-2 px-4 border-t border-gray-400 text-gray-500">
-                  DESARROLLO HUMANO
-                </td>
-                <td className="py-2 px-4 border-t border-gray-400 text-gray-500">
-                  DIANE E. PAPALIA GABRIELA MARTORELL
-                </td>
-                <td className="py-2 px-4 border-t border-gray-400 text-gray-500">
-                  DECIMOTERCERA EDICIÓN
-                </td>
-                <td className="py-2 px-4 border-t border-gray-400">
-                  <button className="h-8 w-24 mx-2 bg-[#88073f] text-gray-100 rounded-lg hover:bg-[#480422]">
-                    Devolver
-                  </button>
-                </td>
-              </tr>
-
-              <tr className="hover:bg-gray-100 cursor-pointer">
-                <td className="py-2 px-4 border-t border-gray-400 font-bold">
-                  9780875847405
-                </td>
-                <td className="py-2 px-4 border-t border-gray-400 text-gray-500">
-                  DESARROLLO HUMANO
-                </td>
-                <td className="py-2 px-4 border-t border-gray-400 text-gray-500">
-                  DIANE E. PAPALIA GABRIELA MARTORELL
-                </td>
-                <td className="py-2 px-4 border-t border-gray-400 text-gray-500">
-                  DECIMOTERCERA EDICIÓN
-                </td>
-                <td className="py-2 px-4 border-t border-gray-400">
-                  <button className="h-8 w-24 mx-2 bg-[#88073f] text-gray-100 rounded-lg hover:bg-[#480422]">
-                    Devolver
-                  </button>
-                </td>
-              </tr>
-
-              <tr className="hover:bg-gray-100 cursor-pointer">
-                <td className="py-2 px-4 border-t border-gray-400 font-bold">
-                  9780875847405
-                </td>
-                <td className="py-2 px-4 border-t border-gray-400 text-gray-500">
-                  DESARROLLO HUMANO
-                </td>
-                <td className="py-2 px-4 border-t border-gray-400 text-gray-500">
-                  DIANE E. PAPALIA GABRIELA MARTORELL
-                </td>
-                <td className="py-2 px-4 border-t border-gray-400 text-gray-500">
-                  DECIMOTERCERA EDICIÓN
-                </td>
-                <td className="py-2 px-4 border-t border-gray-400">
-                  <button className="h-8 w-24 mx-2 bg-[#88073f] text-gray-100 rounded-lg hover:bg-[#480422]">
-                    Devolver
-                  </button>
-                </td>
-              </tr>
-            </tbody>
+                >Devolver</button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
           </table>
         </div>
       </div>

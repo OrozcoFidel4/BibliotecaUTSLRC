@@ -43,6 +43,28 @@ app.listen(4000, () => {
 });
 
 
+//Api consulta de alumnos
+app.get("/alumnos", async (req, res) => {
+  const { nombre = "" } = req.query;
+  try {
+    const connection = await db.getConnection();
+    const searchQuery = `%${nombre}%`;
+    
+    const [alumnos] = await connection.query(
+      `SELECT * FROM alumnos WHERE CONCAT(NOMBRE, ' ', APELLIDO_PATERNO, ' ', APELLIDO_MATERNO) LIKE ?`,
+      [searchQuery]
+    );
+    
+    connection.release();
+    res.json({ data: alumnos });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error al buscar alumnos" });
+  }
+});
+
+
+// API consulta de libros
 app.get("/libros", async (req, res) => {
   const { limit = 20, offset = 0, search = "" } = req.query;
 
@@ -102,7 +124,7 @@ app.get('/api/usuario', (req, res) => {
   return res.status(401).json({ error: 'No autorizado' });
 });
 
-
+// Ruta limpia usuarios
 app.post('/api/logout', (req, res) => {
   res.clearCookie('token', {
     httpOnly: true,
@@ -112,4 +134,60 @@ app.post('/api/logout', (req, res) => {
   return res.json({ message: 'Logout exitoso' });
 });
 
+
+//Api prestamo create
+app.post('/prestamos', async (req, res) => {
+  const { ISBN, fechaPrestamo, fechaDevolucion, nombreSolicitante } = req.body;
+
+  try {
+    // 1. Verificar que hay libros disponibles
+    const [libro] = await db.query(
+      'SELECT cantidad_total_en_existencia FROM libros WHERE ISBN = ?',
+      [ISBN]
+    );
+
+    if (!libro || libro.cantidad_total_en_existencia < 1) {
+      return res.status(400).json({ message: 'Libro no disponible' });
+    }
+
+    // 2. Insertar préstamo en tabla prestamos (ajusta a tu esquema)
+    await db.query(
+      'INSERT INTO prestamos (ISBN, fecha_prestamo, fecha_devolucion, nombre_solicitante) VALUES (?, ?, ?, ?)',
+      [ISBN, fechaPrestamo, fechaDevolucion, nombreSolicitante]
+    );
+
+    // 3. Actualizar cantidad disponible (restar 1)
+    await db.query(
+      'UPDATE libros SET cantidad_total_en_existencia = cantidad_total_en_existencia - 1 WHERE ISBN = ?',
+      [ISBN]
+    );
+
+    res.json({ message: 'Préstamo realizado correctamente' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Error en el servidor' });
+  }
+});
+
+
+//Api consulta prestamos 
+app.get('/prestamos/activos', async (req, res) => {
+  try {
+    // Obtener fecha actual en formato YYYY-MM-DD
+    const hoy = new Date().toISOString().split('T')[0];
+
+const [prestamos] = await db.query(
+  `SELECT p.*, l.titulo, l.autor 
+   FROM prestamos p
+   JOIN libros l ON CONVERT(p.ISBN USING utf8mb4) COLLATE utf8mb4_unicode_ci = l.ISBN
+   WHERE p.fecha_devolucion >= ?`,
+  [hoy]
+);
+
+    res.json({ data: prestamos });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Error al obtener préstamos activos' });
+  }
+});
 
