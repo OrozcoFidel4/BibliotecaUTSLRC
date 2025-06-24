@@ -30,13 +30,14 @@ async function probarConexion() {
 }
 probarConexion();
 
-
-app.use(express.json());
-app.use(cookieParser());
 app.use(cors({
     origin: "http://localhost:5173",
     credentials:true
 }));
+
+app.use(express.json());
+app.use(cookieParser());
+
 
 app.listen(4000, () => {
     console.log('Servidor corriendo en el puerto 4000');
@@ -71,18 +72,39 @@ app.get("/libros", async (req, res) => {
   try {
     const connection = await db.getConnection();
 
-    const searchQuery = `%${search}%`;
+    const searchQuery = `%${search.trim()}%`;
+    const parsedLimit = Math.max(1, parseInt(limit) || 20);
+    const parsedOffset = Math.max(0, parseInt(offset) || 0);
 
+    // Consulta principal agrupando por libro
     const [libros] = await connection.query(
-      `SELECT * FROM libros 
-       WHERE titulo LIKE ? OR autor LIKE ? OR ISBN LIKE ? LIMIT ? OFFSET ?`,
-      [searchQuery, searchQuery, searchQuery, parseInt(limit), parseInt(offset)]  
+      `
+      SELECT 
+        ISBN, 
+        titulo, 
+        autor, 
+        edicion,
+        COUNT(*) as cantidad_total_en_existencia
+      FROM libros
+      WHERE titulo LIKE ? OR autor LIKE ?
+      GROUP BY ISBN, titulo, autor, edicion
+      LIMIT ? OFFSET ?
+      `,
+      [searchQuery, searchQuery, parsedLimit, parsedOffset]
     );
 
+    // Conteo total de grupos únicos
     const [[{ total }]] = await connection.query(
-      `SELECT COUNT(*) as total FROM libros 
-       WHERE titulo LIKE ? OR autor LIKE ? OR ISBN LIKE ?`,  
-      [searchQuery, searchQuery, searchQuery]
+      `
+      SELECT COUNT(*) as total
+      FROM (
+        SELECT 1
+        FROM libros
+        WHERE titulo LIKE ? OR autor LIKE ?
+        GROUP BY ISBN, titulo, autor, edicion
+      ) as subconsulta
+      `,
+      [searchQuery, searchQuery]
     );
 
     connection.release();
@@ -90,7 +112,7 @@ app.get("/libros", async (req, res) => {
     res.json({ data: libros, total });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Error al obtener libros" });
+    res.status(500).json({ error: "Error al obtener libros agrupados" });
   }
 });
 

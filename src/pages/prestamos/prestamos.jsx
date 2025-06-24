@@ -22,6 +22,17 @@ function Prestamos() {
     return () => mediaQuery.removeEventListener("change", handleResize);
   }, []);
 
+  function formatearFecha(fechaISO) {
+  const fecha = new Date(fechaISO);
+  if (isNaN(fecha)) return "-"; // si la fecha no es válida
+
+  return fecha.toLocaleDateString("es-MX", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+}
+
     useEffect(() => {
     const fetchPrestamos = async () => {
       try {
@@ -74,8 +85,8 @@ function Prestamos() {
               <td className="border px-4 py-2">{p.titulo}</td>
               <td className="border px-4 py-2">{p.autor}</td>
               <td className="border px-4 py-2">{p.nombre_solicitante}</td>
-              <td className="border px-4 py-2">{p.fecha_prestamo}</td>
-              <td className="border px-4 py-2">{p.fecha_devolucion}</td>
+              <td className="border px-4 py-2">{formatearFecha(p.fecha_prestamo)}</td>
+              <td className="border px-4 py-2">{formatearFecha(p.fecha_devolucion)}</td>
               <td className="border px-4 py-2">
                 <button
                 className="h-8 w-24 mx-2 bg-[#88073f] text-gray-100 rounded-lg hover:bg-[#480422]"
