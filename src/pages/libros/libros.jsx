@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
+import Modal from "../../components/Modal";
 
 function Libros() {
   const [expanded, setExpanded] = useState(() => window.innerWidth >= 1024);
+  const [open, setOpen] = useState(false)
 
   const [libros, setLibros] = useState([]);
   const [paginaActual, setPaginaActual] = useState(1);
@@ -64,7 +66,7 @@ function Libros() {
         className={`bg-white w-72 px-4 py-2 mb-4 self-end rounded-lg shadow-md ${
           expanded ? "h-auto" : "hidden"
         } overflow-hidden`}
-        type="text"
+        type="search"
         placeholder="Buscar"
         value={search}
         onChange={(e)=> {
@@ -106,7 +108,9 @@ function Libros() {
                     {tipoTitulo(libro.edicion)}
                   </td>
                   <td className="py-2 px-4 border-t border-gray-400">
-                    <button className="h-8 w-24 mx-2 bg-[#88073f] text-gray-100 rounded-lg hover:bg-[#480422]">
+                    <button 
+                    className="h-8 w-24 mx-2 bg-[#88073f] text-gray-100 rounded-lg hover:bg-[#480422]"
+                    onClick={()=> setOpen(true)}>
                       Préstamo
                     </button>
                   </td>
@@ -164,6 +168,21 @@ function Libros() {
         </div>
 
       </div>
+
+      <Modal open={open} onClose={() => setOpen(false)}>
+        <div className="text-center w-80">
+          <div className="mx-auto my-4 w-64">
+            <h3 className="text-lg font-black">Crear Préstamo</h3>
+            <p className="text-sm text-gray-500">Captura los datos para el Préstamo</p>
+          </div>
+            
+          <div className="flex gap-4 mt-8">
+            <button className="w-full h-12 bg-gray-300 rounded-lg hover:bg-gray-400" onClick={() => setOpen(false)}> Cancelar</button>
+            <button className="w-full h-12 bg-[#537473] text-gray-100 rounded-lg hover:bg-[#3d5352]" >Crear Préstamo</button>                
+          </div>
+        </div>
+      </Modal>
+
     </div>
   );
 }
