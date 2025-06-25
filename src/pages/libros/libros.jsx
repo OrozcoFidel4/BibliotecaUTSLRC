@@ -137,6 +137,8 @@ function Libros() {
       console.error("Error en el préstamo:", error);
       alert("Ocurrió un error al registrar el préstamo.");
     }
+
+    setOpen(false)
   };
 
   const inputRef = useRef(null);
@@ -331,7 +333,7 @@ function Libros() {
                 {mostrarSugerencias && sugerencias.length > 0 && (
                   <ul className="absolute z-10 bg-white border border-gray-300 w-full max-h-48 overflow-auto rounded shadow-md">
                     {sugerencias.map((alumno, index) => {
-                      const nombreCompleto = `${alumno.NOMBRE} ${alumno.APELLIDO_PATERNO} ${alumno.APELLIDO_MATERNO}`;
+                      const nombreCompleto = `${alumno.NOMBRE} ${alumno.APELLIDO_MATERNO} ${alumno.APELLIDO_PATERNO}`;
                       return (
                         <li
                           key={index}

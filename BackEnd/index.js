@@ -52,7 +52,7 @@ app.get("/alumnos", async (req, res) => {
     const searchQuery = `%${nombre}%`;
     
     const [alumnos] = await connection.query(
-      `SELECT * FROM alumnos WHERE CONCAT(NOMBRE, ' ', APELLIDO_PATERNO, ' ', APELLIDO_MATERNO) LIKE ?`,
+      `SELECT * FROM alumnos WHERE CONCAT(NOMBRE, ' ', APELLIDO_MATERNO, ' ', APELLIDO_PATERNO) LIKE ?`,
       [searchQuery]
     );
     
