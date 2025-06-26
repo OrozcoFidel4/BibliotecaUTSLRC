@@ -76,33 +76,34 @@ app.get("/libros", async (req, res) => {
     const parsedLimit = Math.max(1, parseInt(limit) || 20);
     const parsedOffset = Math.max(0, parseInt(offset) || 0);
 
-    // Consulta principal agrupando por libro
+    // Consulta principal directamente sobre libros_limpios
     const [libros] = await connection.query(
       `
       SELECT 
-        ISBN, 
-        titulo, 
-        autor, 
+        id,
+        ISBN,
+        titulo,
+        autor,
+        editorial,
         edicion,
-        COUNT(*) as cantidad_total_en_existencia
-      FROM libros
+        año_edicion,
+        numero_de_paginas,
+        sinopsis,
+        locacion,
+        cantidad_total
+      FROM libros_limpios
       WHERE titulo LIKE ? OR autor LIKE ?
-      GROUP BY ISBN, titulo, autor, edicion
       LIMIT ? OFFSET ?
       `,
       [searchQuery, searchQuery, parsedLimit, parsedOffset]
     );
 
-    // Conteo total de grupos únicos
+    // Conteo total sin necesidad de subconsulta
     const [[{ total }]] = await connection.query(
       `
       SELECT COUNT(*) as total
-      FROM (
-        SELECT 1
-        FROM libros
-        WHERE titulo LIKE ? OR autor LIKE ?
-        GROUP BY ISBN, titulo, autor, edicion
-      ) as subconsulta
+      FROM libros_limpios
+      WHERE titulo LIKE ? OR autor LIKE ?
       `,
       [searchQuery, searchQuery]
     );
@@ -112,9 +113,10 @@ app.get("/libros", async (req, res) => {
     res.json({ data: libros, total });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Error al obtener libros agrupados" });
+    res.status(500).json({ error: "Error al obtener libros" });
   }
 });
+
 
 
 
@@ -164,7 +166,7 @@ app.post('/prestamos', async (req, res) => {
   try {
     // 1. Verificar que hay libros disponibles
     const [libro] = await db.query(
-      'SELECT cantidad_total_en_existencia FROM libros WHERE ISBN = ?',
+      'SELECT cantidad_total FROM libros_limpios WHERE ISBN = ?',
       [ISBN]
     );
 
@@ -180,7 +182,7 @@ app.post('/prestamos', async (req, res) => {
 
     // 3. Actualizar cantidad disponible (restar 1)
     await db.query(
-      'UPDATE libros SET cantidad_total_en_existencia = cantidad_total_en_existencia - 1 WHERE ISBN = ?',
+      'UPDATE libros_limpios SET cantidad_total = cantidad_total - 1 WHERE ISBN = ?',
       [ISBN]
     );
 
@@ -195,16 +197,19 @@ app.post('/prestamos', async (req, res) => {
 //Api consulta prestamos 
 app.get('/prestamos/activos', async (req, res) => {
   try {
-    // Obtener fecha actual en formato YYYY-MM-DD
+    const { search = "" } = req.query;
     const hoy = new Date().toISOString().split('T')[0];
 
-const [prestamos] = await db.query(
-  `SELECT p.*, l.titulo, l.autor 
-   FROM prestamos p
-   JOIN libros l ON CONVERT(p.ISBN USING utf8mb4) COLLATE utf8mb4_unicode_ci = l.ISBN
-   WHERE p.fecha_devolucion >= ?`,
-  [hoy]
-);
+    const searchQuery = `%${search.trim()}%`;
+
+    const [prestamos] = await db.query(
+      `SELECT p.*, l.titulo, l.autor 
+       FROM prestamos p
+       JOIN libros_limpios l ON p.ISBN = l.ISBN
+       WHERE (l.titulo LIKE ? OR l.autor LIKE ? OR p.nombre_solicitante LIKE ?)
+         AND p.fecha_devolucion >= ?`,
+      [searchQuery, searchQuery, searchQuery, hoy]
+    );
 
     res.json({ data: prestamos });
   } catch (error) {
@@ -212,4 +217,105 @@ const [prestamos] = await db.query(
     res.status(500).json({ message: 'Error al obtener préstamos activos' });
   }
 });
+
+
+// API Libros devolucion 
+app.put("/prestamos/devolver", async (req, res) => {
+  const { ISBN, nombre_solicitante, fecha_prestamo } = req.body;
+
+  if (!ISBN || !nombre_solicitante || !fecha_prestamo) {
+    return res.status(400).json({ message: "Faltan datos para identificar el préstamo" });
+  }
+
+  try {
+    const connection = await db.getConnection();
+    await connection.beginTransaction();
+
+    const fecha_prestamo_sql = formatearFechaSQL(fecha_prestamo);
+    if (!fecha_prestamo_sql) {
+      await connection.rollback();
+      connection.release();
+      return res.status(400).json({ message: "Fecha de préstamo inválida" });
+    }
+
+    const fechaActual = new Date().toISOString().split("T")[0];
+
+    // 2. Insertar en historial_prestamos
+    await connection.query(
+      `INSERT INTO historial_prestamos (ISBN, nombre_solicitante, fecha_prestamo, fecha_devolucion)
+       VALUES (?, ?, ?, ?)`,
+      [ISBN, nombre_solicitante, fecha_prestamo_sql, fechaActual]
+    );
+
+    // 3. Eliminar de prestamos
+    await connection.query(
+      `DELETE FROM prestamos
+       WHERE ISBN = ? AND nombre_solicitante = ? AND DATE(fecha_prestamo) = ?`,
+      [ISBN, nombre_solicitante, fecha_prestamo_sql]
+    );
+
+    // 4. Actualizar el stock del libro
+    await connection.query(
+      `UPDATE libros_limpios
+       SET cantidad_total = cantidad_total + 1
+       WHERE ISBN = ?`,
+      [ISBN]
+    );
+
+    await connection.commit();
+    connection.release();
+
+    res.json({ message: "Libro devuelto, préstamo archivado y stock actualizado" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error al procesar la devolución" });
+  }
+});
+
+// Función para convertir fecha ISO a YYYY-MM-DD
+function formatearFechaSQL(fechaISO) {
+  const fecha = new Date(fechaISO);
+  if (isNaN(fecha)) return null;
+  return fecha.toISOString().split("T")[0];
+}
+
+
+
+// API historial
+app.get("/historial", async (req, res) => {
+  try {
+    const [rows] = await db.query(
+      `SELECT * FROM historial_prestamos ORDER BY fecha_devolucion DESC`
+    );
+    res.json({ data: rows });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error al obtener historial" });
+  }
+});
+
+
+// API historial estadisticas
+app.get("/estadisticas/mas-prestados-por-mes", async (req, res) => {
+  try {
+    const [rows] = await db.query(`
+      SELECT 
+        DATE_FORMAT(h.fecha_prestamo, '%Y-%m') AS mes,
+        h.ISBN,
+        COALESCE(l.titulo, 'Título no disponible') AS titulo,
+        COUNT(*) AS cantidad_prestamos
+      FROM historial_prestamos h
+      LEFT JOIN libros_limpios l 
+        ON REPLACE(REPLACE(h.ISBN, '-', ''), ' ', '') = REPLACE(REPLACE(l.ISBN, '-', ''), ' ', '')
+      GROUP BY mes, h.ISBN, titulo
+      ORDER BY mes DESC, cantidad_prestamos DESC
+    `);
+
+    res.json({ data: rows });
+  } catch (error) {
+    console.error("Error en estadísticas:", error);
+    res.status(500).json({ message: "Error al obtener estadísticas" });
+  }
+});
+
 

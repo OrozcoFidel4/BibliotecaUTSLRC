@@ -4,6 +4,8 @@ function Prestamos() {
   const [expanded, setExpanded] = useState(() => window.innerWidth >= 1024);
   const [prestamos, setPrestamos] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [busqueda, setBusqueda] = useState("");
+
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(min-width: 1024px)");
@@ -34,7 +36,7 @@ function Prestamos() {
   useEffect(() => {
     const fetchPrestamos = async () => {
       try {
-        const res = await fetch("http://localhost:4000/prestamos/activos");
+        const res = await fetch(`http://localhost:4000/prestamos/activos?search=${busqueda}`);
         const data = await res.json();
         setPrestamos(data.data);
       } catch (error) {
@@ -45,11 +47,48 @@ function Prestamos() {
     };
 
     fetchPrestamos();
-  }, []);
+  }, [busqueda]);
+
+const manejarDevolucion = async (prestamo) => {
+  const confirmar = window.confirm("¿Seguro que deseas devolver este libro?");
+  if (!confirmar) return;
+
+  try {
+    const res = await fetch("http://localhost:4000/prestamos/devolver", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ISBN: prestamo.ISBN,
+        nombre_solicitante: prestamo.nombre_solicitante,
+        fecha_prestamo: prestamo.fecha_prestamo,
+      }),
+    });
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      throw new Error(`Error ${res.status}: ${errorText}`);
+    }
+
+    setPrestamos((prev) =>
+      prev.filter(
+        (p) =>
+          !(
+            p.ISBN === prestamo.ISBN &&
+            p.nombre_solicitante === prestamo.nombre_solicitante &&
+            p.fecha_prestamo === prestamo.fecha_prestamo
+          )
+      )
+    );
+  } catch (error) {
+    console.error(error);
+    alert(`Hubo un error al devolver el libro: ${error.message}`);
+  }
+};
+
+
 
   if (loading) return <p>Cargando préstamos activos...</p>;
 
-  if (prestamos.length === 0) return <p>No hay préstamos activos.</p>;
 
   function tipoTitulo(texto) {
     return texto
@@ -70,6 +109,8 @@ function Prestamos() {
                            ${expanded ? "h-auto" : "hidden"} overflow-hidden`}
         type="search"
         placeholder="Buscar"
+        value={busqueda}
+        onChange={(e) => setBusqueda(e.target.value)}
       />
 
       <div className="flex-grow w-full">
@@ -88,7 +129,7 @@ function Prestamos() {
             </thead>
             <tbody>
               {prestamos.map((p) => (
-                <tr key={p.id} className="hover:bg-gray-100">
+                <tr key={`${p.ISBN}-${p.nombre_solicitante}-${p.fecha_prestamo}`} className="hover:bg-gray-100">
                   <td className="py-2 px-4 border-t border-gray-400 font-bold">{tipoTitulo(p.ISBN)}</td>
                   <td className="py-2 px-4 border-t border-gray-400 text-gray-500 text-sm">{tipoTitulo(p.titulo)}</td>
                   <td className="py-2 px-4 border-t border-gray-400 text-gray-500 text-sm">{tipoTitulo(p.autor)}</td>
@@ -100,7 +141,8 @@ function Prestamos() {
                     {formatearFecha(p.fecha_devolucion)}
                   </td>
                   <td className="py-2 px-4 border-t border-gray-400 text-gray-500 text-sm">
-                    <button className="h-8 w-24 mx-2 bg-[#88073f] text-gray-100 rounded-lg hover:bg-[#480422]">
+                    <button className="h-8 w-24 mx-2 bg-[#88073f] text-gray-100 rounded-lg hover:bg-[#480422]"
+                    onClick={()=> manejarDevolucion(p)}>
                       Devolver
                     </button>
                   </td>

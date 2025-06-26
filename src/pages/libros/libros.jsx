@@ -44,7 +44,7 @@ function Libros() {
       }
     };
     obtenerLibros();
-  }, [paginaActual, limitePorPagina, search]);
+  }, [paginaActual, limitePorPagina, search,open]);
 
   useEffect(() => {
     if (open) {
@@ -206,7 +206,7 @@ function Libros() {
                     {tipoTitulo(libro.autor)}
                   </td>
                   <td className="py-2 px-4 border-t border-gray-400 text-gray-500 text-sm text-center">
-                    {libro.cantidad_total_en_existencia}
+                    {libro.cantidad_total}
                   </td>
                   <td className="py-2 px-4 border-t border-gray-400 text-gray-500 text-sm">
                     {tipoTitulo(libro.edicion)}
