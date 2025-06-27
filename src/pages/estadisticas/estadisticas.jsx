@@ -43,10 +43,10 @@ function Estadisticas() {
 
   return (
     <div className="flex flex-col min-h-screen w-full px-16 pt-6">
-      <h1 className="text-4xl font-bold mb-4">Estadísticas</h1>
-      <p className="text-gray-600 text-lg mb-8">
-        Libros más prestados por mes
-      </p>
+      <div className="font-bold text-5xl mb-2">Estadísticas</div>
+      <div className="text-xl mb-12 text-gray-500">
+        Estadísticas de Préstamos de Biblioteca
+      </div>
 
       {loading ? (
         <p className="text-gray-500">Cargando datos...</p>

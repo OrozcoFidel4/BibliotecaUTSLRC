@@ -198,7 +198,7 @@ app.post('/prestamos', async (req, res) => {
 app.get('/prestamos/activos', async (req, res) => {
   try {
     const { search = "" } = req.query;
-    const hoy = new Date().toISOString().split('T')[0];
+    const hoy = new Date().toLocaleDateString("en-CA");
 
     const searchQuery = `%${search.trim()}%`;
 

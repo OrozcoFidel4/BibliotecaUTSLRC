@@ -48,7 +48,7 @@ function Libros() {
 
   useEffect(() => {
     if (open) {
-      const hoy = new Date().toISOString().split("T")[0];
+      const hoy = new Date().toLocaleDateString("en-CA");
       setFechaPrestamo(hoy);
       setFechaDevolucion("");
       setNombreSolicitante("");
@@ -179,7 +179,7 @@ function Libros() {
       <div className="flex-grow w-full">
         <div className="overflow-hidden rounded-lg shadow-md mb-8">
           <table className="min-w-full bg-white">
-            <thead>
+            <thead className="bg-gray-100">
               <tr className="hover:bg-gray-100 cursor-pointer">
                 <th className="py-2 px-4 border-gray-400">ISBN</th>
                 <th className="py-2 px-4 border-gray-400">Título</th>

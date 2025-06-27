@@ -25,13 +25,13 @@ function Home() {
   const hoy = new Date().toLocaleDateString("es-MX");
 
   // Filtrar los préstamos hechos hoy
-  const prestamosDeHoy = prestamos.filter(
+  const prestamosAentregarHoy = prestamos.filter(
     (prestamo) =>
-      new Date(prestamo.fecha_prestamo).toLocaleDateString("es-MX") === hoy
+      new Date(prestamo.fecha_devolucion).toLocaleDateString("es-MX") === hoy
   );
 
   // Cantidad de préstamos hechos hoy
-  const cantidadPrestamosHoy = prestamosDeHoy.length;
+  const cantidadPrestamosEntregaHoy = prestamosAentregarHoy.length;
 
   return (
     <div className="h-full w-full px-16">
@@ -46,8 +46,9 @@ function Home() {
         </button>
 
         <div>
-          <h1>{cantidadPrestamosHoy}</h1>
+          <h1>{cantidadPrestamosEntregaHoy}</h1>
         </div>
+        
         <button className="h-48 bg-[#88073f] text-gray-100 rounded-xl shadow-xl hover:bg-[#480422] items-">
           Prestamos
         </button>
