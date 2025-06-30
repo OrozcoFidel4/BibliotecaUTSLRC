@@ -282,15 +282,57 @@ function formatearFechaSQL(fechaISO) {
 
 
 // API historial
-app.get("/historial", async (req, res) => {
+app.get('/historial', async (req, res) => {
+  const {
+    limit = 10,
+    offset = 0,
+    search = '',
+    isbn = '',
+    fechaDesde = '',
+    fechaHasta = ''
+  } = req.query;
+
   try {
-    const [rows] = await db.query(
-      `SELECT * FROM historial_prestamos ORDER BY fecha_devolucion DESC`
+    const connection = await db.getConnection();
+
+    const condiciones = [];
+    const valores = [];
+
+    if (search) {
+      condiciones.push(`nombre_solicitante LIKE ?`);
+      valores.push(`%${search}%`);
+    }
+    if (isbn) {
+      condiciones.push(`ISBN LIKE ?`);
+      valores.push(`%${isbn}%`);
+    }
+    if (fechaDesde) {
+      condiciones.push(`fecha_prestamo >= ?`);
+      valores.push(fechaDesde);
+    }
+    if (fechaHasta) {
+      condiciones.push(`fecha_prestamo <= ?`);
+      valores.push(fechaHasta);
+    }
+
+    const whereClause = condiciones.length > 0 ? `WHERE ${condiciones.join(' AND ')}` : '';
+
+    const [historial] = await connection.query(
+      `SELECT * FROM historial_prestamos ${whereClause} ORDER BY fecha_prestamo DESC LIMIT ? OFFSET ?`,
+      [...valores, parseInt(limit), parseInt(offset)]
     );
-    res.json({ data: rows });
+
+    const [[{ total }]] = await connection.query(
+      `SELECT COUNT(*) AS total FROM historial_prestamos ${whereClause}`,
+      valores
+    );
+
+    connection.release();
+
+    res.json({ data: historial, total });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Error al obtener historial" });
+    res.status(500).json({ message: 'Error al obtener historial' });
   }
 });
 
