@@ -40,18 +40,51 @@ function Home() {
         <div className="text-xl mb-12 text-gray-500">Bienvenido, Jonh Doe</div>
       </div>
 
-      <div className="grid grid-cols-2 gap-2">
-        <button className="h-48 bg-[#88073f] text-gray-100 rounded-xl shadow-xl hover:bg-[#480422] items-">
-          Prestamos
-        </button>
-
-        <div>
-          <h1>{cantidadPrestamosEntregaHoy}</h1>
-        </div>
+      <div className="flex-1 flex flex-row w-full justify-center gap-4 mb-4">
         
-        <button className="h-48 bg-[#88073f] text-gray-100 rounded-xl shadow-xl hover:bg-[#480422] items-">
-          Prestamos
-        </button>
+        {/* Botones */}
+        <div className="flex-1 flex flex-col">
+          <button className="flex-1 bg-red-500 h-64">BTN1</button>
+          <button className="flex-1 bg-red-500 h-64">BTN2</button>
+        </div>
+
+        {/* Prestamos informacion */}
+        <div className="flex-1 flex flex-col justify-between gap-4">
+
+          <div className="flex flex-row w-full justify-center gap-4 mb-24">
+
+            <div className="flex flex-row justify-start items-center gap-4 bg-gray-100 p-4 rounded-xl">
+              <div className="flex flex-col">
+                <h1 className="text-2xl">Préstamos por</h1>
+                <h1 className="text-2xl">entregar hoy:</h1>
+              </div>
+
+              <div className="flex flex-col bg-green-600 h-32 w-32 rounded-lg items-center justify-center inset-shadow-sm inset-shadow-green-800">
+                <h1 className="font-bold text-5xl text-gray-50">
+                  {cantidadPrestamosEntregaHoy}
+                </h1>
+
+                <h1 className="font-bold text-xxl text-gray-50">Libros</h1>
+              </div>
+            </div>
+
+            <div className="flex flex-row justify-start items-center gap-4 bg-gray-100 p-4 rounded-xl">
+              <div className="flex flex-col">
+                <h1 className="text-2xl">Préstamos con</h1>
+                <h1 className="text-2xl">entrega tardía:</h1>
+              </div>
+
+              <div className="flex flex-col bg-red-500 h-32 w-32 rounded-lg items-center justify-center inset-shadow-sm inset-shadow-red-600">
+                <h1 className="font-bold text-5xl text-gray-50">
+                  {cantidadPrestamosEntregaHoy}
+                </h1>
+
+                <h1 className="font-bold text-xxl text-gray-50">Libros</h1>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
   );

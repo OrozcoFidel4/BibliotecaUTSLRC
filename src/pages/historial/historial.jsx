@@ -75,27 +75,28 @@ function Historial() {
       <div className="text-xl mb-4 text-gray-500">Historial de Préstamos</div>
 
       {/* Filtros */}
-      <div className="flex flex-wrap gap-4 mb-6">
+      <div className="flex flex-wrap gap-4 mb-6 self-end">
         <input
-          type="text"
+          className="bg-white w-64 px-4 py-2 rounded-lg shadow-md "
+          type="search"
           value={busqueda}
           onChange={(e) => {
             setBusqueda(e.target.value);
             setPaginaActual(1);
           }}
-          placeholder="Buscar por nombre"
-          className="px-3 py-2 border rounded w-64"
+          placeholder="Solicitante"
+         
         />
 
         <input
-          type="text"
+          type="search"
           value={isbn}
           onChange={(e) => {
             setIsbn(e.target.value);
             setPaginaActual(1);
           }}
-          placeholder="Filtrar por ISBN"
-          className="px-3 py-2 border rounded w-48"
+          placeholder="ISBN"
+          className="bg-white w-48 px-4 py-2 rounded-lg shadow-md "
         />
 
         <input
@@ -105,7 +106,7 @@ function Historial() {
             setFechaDesde(e.target.value);
             setPaginaActual(1);
           }}
-          className="px-3 py-2 border rounded"
+          className="bg-white w-48 px-4 py-2 rounded-lg shadow-md "
         />
 
         <input
@@ -115,12 +116,12 @@ function Historial() {
             setFechaHasta(e.target.value);
             setPaginaActual(1);
           }}
-          className="px-3 py-2 border rounded"
+          className="bg-white w-48 px-4 py-2 rounded-lg shadow-md "
         />
 
         <button
           onClick={limpiarFiltros}
-          className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+          className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400 disabled:opacity-50"
         >
           Limpiar
         </button>
