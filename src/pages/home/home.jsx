@@ -21,17 +21,27 @@ function Home() {
     fetchPrestamos();
   }, []);
 
-  // Obtener la fecha de hoy en formato local
-  const hoy = new Date().toLocaleDateString("es-MX");
+  const hoy = new Date();
+hoy.setHours(0, 0, 0, 0); // Para ignorar hora y comparar solo la fecha
 
-  // Filtrar los préstamos hechos hoy
-  const prestamosAentregarHoy = prestamos.filter(
-    (prestamo) =>
-      new Date(prestamo.fecha_devolucion).toLocaleDateString("es-MX") === hoy
-  );
+const prestamosAentregarHoy = prestamos.filter((prestamo) => {
+  const fechaDevolucion = new Date(prestamo.fecha_devolucion);
+  fechaDevolucion.setHours(0, 0, 0, 0);
+  return fechaDevolucion.getTime() === hoy.getTime();
+});
+
+const prestamosTardios = prestamos.filter((prestamo) => {
+  const fechaDevolucion = new Date(prestamo.fecha_devolucion);
+  fechaDevolucion.setHours(0, 0, 0, 0);
+  return fechaDevolucion.getTime() < hoy.getTime();
+});
+
 
   // Cantidad de préstamos hechos hoy
   const cantidadPrestamosEntregaHoy = prestamosAentregarHoy.length;
+
+  //Prestamos tardios
+  const PrestamosConRetraso = prestamosTardios.length;
 
   return (
     <div className="h-full w-full px-16">
@@ -76,7 +86,7 @@ function Home() {
 
               <div className="flex flex-col bg-red-500 h-32 w-32 rounded-lg items-center justify-center inset-shadow-sm inset-shadow-red-600">
                 <h1 className="font-bold text-5xl text-gray-50">
-                  {cantidadPrestamosEntregaHoy}
+                  {PrestamosConRetraso}
                 </h1>
 
                 <h1 className="font-bold text-xxl text-gray-50">Libros</h1>

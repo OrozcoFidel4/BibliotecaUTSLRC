@@ -206,8 +206,7 @@ app.get('/prestamos/activos', async (req, res) => {
       `SELECT p.*, l.titulo, l.autor 
        FROM prestamos p
        JOIN libros_limpios l ON p.ISBN = l.ISBN
-       WHERE (l.titulo LIKE ? OR l.autor LIKE ? OR p.nombre_solicitante LIKE ?)
-         AND p.fecha_devolucion >= ?`,
+       WHERE (l.titulo LIKE ? OR l.autor LIKE ? OR p.nombre_solicitante LIKE ?)`,
       [searchQuery, searchQuery, searchQuery, hoy]
     );
 
