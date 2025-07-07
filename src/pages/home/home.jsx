@@ -56,9 +56,9 @@ const prestamosTardios = prestamos.filter((prestamo) => {
       <div className="flex flex-col pt-6">
         <div className="font-bold text-5xl mb-2">Inicio</div>
         <div className="text-xl mb-12 text-gray-500">Bienvenido, Jonh Doe</div>
-      </div>
 
-      <div className="flex flex-row justify-end mb-8 gap-4">
+
+        <div className="flex flex-row justify-end mb-8 gap-4">
 
         <div className="flex flex-row gap-2 items-center border-r-2 border-gray-300 pr-4">
           <h2 className="text-2xl">Por Entregar Hoy:</h2>
@@ -75,14 +75,17 @@ const prestamosTardios = prestamos.filter((prestamo) => {
         </div>
 
       </div>
+      </div>
 
-      <div className="flex-1 flex flex-row w-full h-120 justify-center gap-4 mb-4">
+    
+
+      <div className="flex flex-row w-full h-80 justify-center gap-4 mb-4">
         
         {/* Botones */}
           <button 
             className="flex-1 flex flex-col items-center justify-center bg-[#88073f] shadow shadow-xl rounded-xl hover:bg-[#480422]"
             onClick={() => navigate("/libros")}>
-            <GraduationCap size={160} className="text-gray-100" />
+            <GraduationCap size={140} className="text-gray-100" />
             <h1 className="text-2xl font-semibold text-gray-100">Crear</h1>
             <h1 className="text-2xl font-semibold text-gray-100">Préstamo</h1>
           </button>
@@ -90,7 +93,7 @@ const prestamosTardios = prestamos.filter((prestamo) => {
           <button 
             className="flex-1 flex flex-col items-center justify-center bg-[#88073f] shadow shadow-xl rounded-xl hover:bg-[#480422]"
             onClick={() => navigate("/prestamos")}>
-            <LibraryBig size={160} className="text-gray-100" />
+            <LibraryBig size={140} className="text-gray-100" />
             <h1 className="text-2xl font-semibold text-gray-100">Devolver</h1>
             <h1 className="text-2xl font-semibold text-gray-100">Préstamo</h1>
           </button>
@@ -98,6 +101,10 @@ const prestamosTardios = prestamos.filter((prestamo) => {
         
 
       </div>
+
+      
+
+
     </div>
   );
 }
