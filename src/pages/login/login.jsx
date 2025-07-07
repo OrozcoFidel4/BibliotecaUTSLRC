@@ -34,18 +34,18 @@ const Login = () => {
       </div>
 
       <div className="relative z-10 flex flex-col items-center justify-center h-full">
-        <h4 className="relative z-10 text-center text-white text-5xl font-bold">
+        <h4 className="relative z-10 text-center text-white text-5xl font-bold select-none">
           Sistema
         </h4>
-        <h4 className="relative z-10 text-center text-white text-5xl font-bold mb-6">
+        <h4 className="relative z-10 text-center text-white text-5xl font-bold mb-6 select-none">
           Bibliotecario
         </h4>
         <div className="h-94 w-120 bg-gray-100 flex flex-col items-center justify-center rounded-xl shadow-xl">
           
 
           <div className="flex flex-row justify-around items-center mb-6">
-            <img src={LogoUT} className="h-12 w-auto object-contain border-r-2 border-gray-300 pr-4" alt="UT" />
-            <img src={LogoBis} className="h-12 w-auto object-contain pl-2" alt="BIS"/>
+            <img src={LogoUT} className="h-12 w-auto object-contain border-r-2 border-gray-300 pr-4 pointer-events-none select-none" alt="UT" />
+            <img src={LogoBis} className="h-12 w-auto object-contain pl-2 pointer-events-none select-none" alt="BIS"/>
           </div>
 
           <input
@@ -63,7 +63,7 @@ const Login = () => {
             onChange={(e) => setPassword(e.target.value)}
           />
           <button
-            className="h-12 w-48 mt-6 font-semibold bg-[#537473] text-white rounded-lg hover:bg-[#3d5352]"
+            className="h-12 w-48 mt-6 font-semibold bg-[#537473] text-white rounded-lg hover:bg-[#3d5352] select-none"
             onClick={handleLogin}
           >
             Iniciar Sesión

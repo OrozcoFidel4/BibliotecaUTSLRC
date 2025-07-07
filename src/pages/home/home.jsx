@@ -58,7 +58,25 @@ const prestamosTardios = prestamos.filter((prestamo) => {
         <div className="text-xl mb-12 text-gray-500">Bienvenido, Jonh Doe</div>
       </div>
 
-      <div className="flex-1 flex flex-row w-full justify-center gap-4 mb-4">
+      <div className="flex flex-row justify-end mb-8 gap-4">
+
+        <div className="flex flex-row gap-2 items-center border-r-2 border-gray-300 pr-4">
+          <h2 className="text-2xl">Por Entregar Hoy:</h2>
+          <div className="flex bg-green-600 w-12 h-12 rounded-sm items-center justify-center">
+            <h2 className="text-gray-50 text-2xl font-bold">{cantidadPrestamosEntregaHoy}</h2>
+          </div>
+        </div>
+
+        <div className="flex flex-row gap-2 items-center">
+          <h2 className="text-2xl">Entrega Tardía:</h2>
+          <div className="flex bg-red-500 w-12 h-12 rounded-sm items-center justify-center">
+            <h2 className="text-gray-50 text-2xl font-bold">{PrestamosConRetraso}</h2>
+          </div>
+        </div>
+
+      </div>
+
+      <div className="flex-1 flex flex-row w-full h-120 justify-center gap-4 mb-4">
         
         {/* Botones */}
           <button 
@@ -77,43 +95,7 @@ const prestamosTardios = prestamos.filter((prestamo) => {
             <h1 className="text-2xl font-semibold text-gray-100">Préstamo</h1>
           </button>
 
-        {/* Prestamos informacion */}
-        <div className="bg-gray-100 p-4 rounded-xl shadow shadow-xl">
         
-          <div className="basis-1/4 flex-col w-full space-y-4">
-
-            <div className="flex flex-row justify-around items-center bg-gray-200 p-4 rounded-xl gap-4">
-              <div className="flex flex-col">
-                <h1 className="font-semibold">Préstamos</h1>
-                <h1 className="font-semibold">para hoy:</h1>
-              </div>
-
-              <div className="flex flex-col bg-green-600 h-20 w-20 rounded-lg items-center justify-center inset-shadow-sm inset-shadow-green-800">
-                <h1 className="font-bold text-2xl text-gray-50">
-                  {cantidadPrestamosEntregaHoy}
-                </h1>
-
-                <h1 className="text-xs text-gray-50">Préstamos</h1>
-              </div>
-            </div>
-
-            <div className="flex flex-row justify-around items-center bg-gray-200 p-4 rounded-xl gap-4 shadow shadow-xl">
-              <div className="flex flex-col">
-                <h1 className="font-semibold">Préstamos</h1>
-                <h1 className="font-semibold">vencidos:</h1>
-              </div>
-
-              <div className="flex flex-col bg-red-500 h-20 w-20 rounded-lg items-center justify-center inset-shadow-sm inset-shadow-red-800">
-                <h1 className="font-bold text-2xl text-gray-50">
-                  {PrestamosConRetraso}
-                </h1>
-
-                <h1 className="text-xs text-gray-50">Préstamos</h1>
-              </div>
-            </div>
-          </div>
-
-        </div>
 
       </div>
     </div>
