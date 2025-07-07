@@ -49,7 +49,7 @@ function Layout() {
         </main>
 
         <footer className="bg-gray-800 text-center p-3 text-sm text-white">
-          Universidad Tecnológica De San Luis Rio Colorado.
+          Sistema Biblitecario | Universidad Tecnológica De San Luis Rio Colorado.
         </footer>
       </div>
     </div>

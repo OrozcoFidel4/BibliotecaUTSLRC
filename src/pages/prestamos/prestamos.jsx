@@ -2,13 +2,14 @@ import { useState, useEffect } from "react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
+import Modal from "../../components/Modal";
 
 function Prestamos() {
   const [expanded, setExpanded] = useState(() => window.innerWidth >= 1024);
   const [prestamos, setPrestamos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [busqueda, setBusqueda] = useState("");
-  const [modalAbierto, setModalAbierto] = useState(false);
+  const [open, setOpen] = useState(false);
   const [prestamoSeleccionado, setPrestamoSeleccionado] = useState(null);
   const [condiciones, setCondiciones] = useState({
     roto: false,
@@ -16,36 +17,49 @@ function Prestamos() {
     mojado: false,
   });
 
-
   const generarPDF = () => {
-  const doc = new jsPDF();
+    const doc = new jsPDF();
 
-  const { titulo, autor, ISBN, nombre_solicitante, fecha_prestamo } = prestamoSeleccionado;
+    const { titulo, autor, ISBN, nombre_solicitante, fecha_prestamo } =
+      prestamoSeleccionado;
 
-  doc.setFontSize(16);
-  doc.text("Reporte de Devolución de Libro", 14, 20);
+    doc.setFontSize(16);
+    doc.text("Reporte de Devolución de Libro", 14, 20, );
 
-  doc.setFontSize(12);
-  doc.text(`Título: ${titulo}`, 14, 35);
-  doc.text(`Autor: ${autor}`, 14, 42);
-  doc.text(`ISBN: ${ISBN}`, 14, 49);
-  doc.text(`Solicitante: ${nombre_solicitante}`, 14, 56);
-  doc.text(`Fecha de préstamo: ${formatearFecha(fecha_prestamo)}`, 14, 63);
+    doc.setFontSize(12);
+    doc.text(`Título: ${titulo}`, 14, 35);
+    doc.text(`Autor: ${autor}`, 14, 42);
+    doc.text(`ISBN: ${ISBN}`, 14, 49);
+    doc.text(`Solicitante: ${nombre_solicitante}`, 14, 56);
+    doc.text(`Fecha de préstamo: ${formatearFecha(fecha_prestamo)}`, 14, 63);
 
-  const daños = Object.entries(condiciones)
-    .filter(([_, marcado]) => marcado)
-    .map(([clave]) => clave.charAt(0).toUpperCase() + clave.slice(1));
+    const daños = Object.entries(condiciones)
+      .filter(([_, marcado]) => marcado)
+      .map(([clave]) => clave.charAt(0).toUpperCase() + clave.slice(1));
 
-  autoTable(doc, {
-    startY: 75,
-    head: [["Daños reportados"]],
-    body: daños.length ? daños.map((d) => [d]) : [["Sin daños reportados"]],
-  });
+    autoTable(doc, {
+      startY: 75,
+      head: [["Daños reportados", "Importe"]],
+      body: daños.length ? daños.map((d) => [d]) : [["Sin daños reportados"]],
+      headStyles: {
+        fillColor: "#537473", // RGB del color #88073f
+        textColor: 255, // Blanco
+        halign: "center", // Alineación opcional
+      },
+      bodyStyles: {
+        lineColor: [0, 0, 0], // Color del borde (negro)
+        lineWidth: 0.2, // Grosor del borde
+        textColor: [50, 50, 50],
+      },
+      styles: {
+        fontSize: 10,
+        cellPadding: 6,
+      },
+    });
 
-  const fecha = new Date().toISOString().slice(0, 10);
-  doc.save(`Devolucion_${ISBN}_${fecha}.pdf`);
-};
-
+    const fecha = new Date().toISOString().slice(0, 10);
+    doc.save(`Devolucion_${ISBN}_${fecha}.pdf`);
+  };
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(min-width: 1024px)");
@@ -58,7 +72,9 @@ function Prestamos() {
   useEffect(() => {
     const fetchPrestamos = async () => {
       try {
-        const res = await fetch(`http://localhost:4000/prestamos/activos?search=${busqueda}`);
+        const res = await fetch(
+          `http://localhost:4000/prestamos/activos?search=${busqueda}`
+        );
         const data = await res.json();
         setPrestamos(data.data);
       } catch (error) {
@@ -83,12 +99,12 @@ function Prestamos() {
 
   function esPrestamoTardio(fechaDevolucion) {
     const hoy = new Date();
-  hoy.setHours(0, 0, 0, 0);
+    hoy.setHours(0, 0, 0, 0);
 
-  const fechaDev = new Date(fechaDevolucion);
-  fechaDev.setHours(0, 0, 0, 0);
+    const fechaDev = new Date(fechaDevolucion);
+    fechaDev.setHours(0, 0, 0, 0);
 
-  return fechaDev.getTime() < hoy.getTime();
+    return fechaDev.getTime() < hoy.getTime();
   }
 
   const tipoTitulo = (texto) =>
@@ -101,7 +117,7 @@ function Prestamos() {
   const abrirModal = (prestamo) => {
     setPrestamoSeleccionado(prestamo);
     setCondiciones({ roto: false, manchado: false, mojado: false });
-    setModalAbierto(true);
+    setOpen(true);
   };
 
   const confirmarDevolucion = async () => {
@@ -127,12 +143,13 @@ function Prestamos() {
           (p) =>
             !(
               p.ISBN === prestamoSeleccionado.ISBN &&
-              p.nombre_solicitante === prestamoSeleccionado.nombre_solicitante &&
+              p.nombre_solicitante ===
+                prestamoSeleccionado.nombre_solicitante &&
               p.fecha_prestamo === prestamoSeleccionado.fecha_prestamo
             )
         )
       );
-      setModalAbierto(false);
+      setOpen(false);
     } catch (error) {
       console.error(error);
       alert(`Hubo un error al devolver el libro: ${error.message}`);
@@ -144,10 +161,14 @@ function Prestamos() {
   return (
     <div className="flex flex-col h-full w-full px-16 pt-6">
       <div className="font-bold text-5xl mb-2">Préstamos</div>
-      <div className="text-xl mb-4 text-gray-500">Listado de Préstamos en Activo</div>
+      <div className="text-xl mb-4 text-gray-500">
+        Listado de Préstamos en Activo
+      </div>
 
       <input
-        className={`bg-white w-72 px-4 py-2 mb-4 self-end rounded-lg shadow-md ${expanded ? "h-auto" : "hidden"} overflow-hidden`}
+        className={`bg-white w-72 px-4 py-2 mb-4 self-end rounded-lg shadow-md ${
+          expanded ? "h-auto" : "hidden"
+        } overflow-hidden`}
         type="search"
         placeholder="Buscar"
         value={busqueda}
@@ -170,18 +191,36 @@ function Prestamos() {
             </thead>
             <tbody>
               {prestamos.map((p) => (
-                <tr key={`${p.ISBN}-${p.nombre_solicitante}-${p.fecha_prestamo}`}   className={`hover:bg-gray-100 ${esPrestamoTardio(p.fecha_devolucion) ? 'bg-red-100' : ''}`} onClick={()=>abrirModal(p)}>
-                  <td className="py-2 px-4 border-t border-gray-400 font-bold">{tipoTitulo(p.ISBN)}</td>
-                  <td className="py-2 px-4 border-t border-gray-400 text-gray-500 text-sm">{tipoTitulo(p.titulo)}</td>
-                  <td className="py-2 px-4 border-t border-gray-400 text-gray-500 text-sm">{tipoTitulo(p.autor)}</td>
-                  <td className="py-2 px-4 border-t border-gray-400 text-gray-500 text-sm">{tipoTitulo(p.nombre_solicitante)}</td>
-                  <td className="py-2 px-4 border-t border-gray-400 text-gray-500 text-sm">{formatearFecha(p.fecha_prestamo)}</td>
-                  <td className="py-2 px-4 border-t border-gray-400 text-gray-500 text-sm">{formatearFecha(p.fecha_devolucion)}</td>
+                <tr
+                  key={`${p.ISBN}-${p.nombre_solicitante}-${p.fecha_prestamo}`}
+                  className={`hover:bg-gray-100 ${
+                    esPrestamoTardio(p.fecha_devolucion) ? "bg-red-100" : ""
+                  }`}
+                  onClick={() => abrirModal(p)}
+                >
+                  <td className="py-2 px-4 border-t border-gray-400 font-bold">
+                    {tipoTitulo(p.ISBN)}
+                  </td>
+                  <td className="py-2 px-4 border-t border-gray-400 text-gray-500 text-sm">
+                    {tipoTitulo(p.titulo)}
+                  </td>
+                  <td className="py-2 px-4 border-t border-gray-400 text-gray-500 text-sm">
+                    {tipoTitulo(p.autor)}
+                  </td>
+                  <td className="py-2 px-4 border-t border-gray-400 text-gray-500 text-sm">
+                    {tipoTitulo(p.nombre_solicitante)}
+                  </td>
+                  <td className="py-2 px-4 border-t border-gray-400 text-gray-500 text-sm">
+                    {formatearFecha(p.fecha_prestamo)}
+                  </td>
+                  <td className="py-2 px-4 border-t border-gray-400 text-gray-500 text-sm">
+                    {formatearFecha(p.fecha_devolucion)}
+                  </td>
                   <td className="py-2 px-4 border-t border-gray-400 text-gray-500 text-sm">
                     <button
                       className="h-8 w-24 mx-2 bg-[#88073f] text-gray-100 rounded-lg hover:bg-[#480422]"
                       onClick={() => {
-                        abrirModal(p)
+                        abrirModal(p);
                       }}
                     >
                       Devolver
@@ -194,49 +233,74 @@ function Prestamos() {
         </div>
       </div>
 
-      {/* Modal de confirmación */}
-      {modalAbierto && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-[400px]">
-            <h2 className="text-xl font-semibold mb-4">Confirmar Devolución</h2>
-            <p className="mb-2">Libro: <strong>{tipoTitulo(prestamoSeleccionado.titulo)}</strong></p>
-            <p className="mb-4">Solicitante: <strong>{tipoTitulo(prestamoSeleccionado.nombre_solicitante)}</strong></p>
+      <Modal open={open} onClose={() => setOpen(false)}>
+        <div className="text-center w-160">
+          <h3 className="text-lg font-black">Devolver Préstamo</h3>
+          <p className="text-sm text-gray-500 ">
+            Captura los datos para la devolución del préstamo.
+          </p>
 
-            <div className="mb-4">
-              <p className="font-semibold mb-1">Condición del libro al devolver:</p>
-              {["roto", "manchado", "mojado","rayado","sin daños"].map((cond) => (
-                <label className="block" key={cond}>
-                  <input
-                    type="checkbox"
-                    className="mr-2"
-                    checked={condiciones[cond]}
-                    onChange={(e) => setCondiciones((c) => ({ ...c, [cond]: e.target.checked }))}
-                  />
-                  {cond.charAt(0).toUpperCase() + cond.slice(1)}
-                </label>
-              ))}
-            </div>
+          <div className="flex flex-row justify-stretch items-start mt-8 mb-8">
+            {open && (
+              <div className="text-left mx-3 basis-3/5 flex-none border-r-2 border-gray-300 ">
+                <h4 className="font-semibold mb-1">Titulo</h4>
+                <p className="text-md text-gray-500 pb-2 mr-4">
+                  {tipoTitulo(prestamoSeleccionado.titulo)}
+                </p>
+                <h4 className="font-semibold mb-1">Solicitante</h4>
+                <p className="text-md text-gray-500 mr-4">
+                  {tipoTitulo(prestamoSeleccionado.nombre_solicitante)}
+                </p>
+              </div>
+            )}
 
-            <div className="flex justify-end gap-2">
-              <button
-                className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400"
-                onClick={() => setModalAbierto(false)}
-              >
-                Cancelar
-              </button>
-              <button
-                className="bg-[#88073f] text-white px-4 py-2 rounded hover:bg-[#5d052d]"
-                onClick={()=>{
-                  generarPDF()
-                  confirmarDevolucion()
-                }}
-              >
-                Confirmar
-              </button>
+            <div className="text-left mx-3 flex-1">
+              <div className="flex flex-col justify-between ">
+                <h4 className="font-semibold mb-1">Multas Aplicables</h4>
+
+                {["roto", "manchado", "mojado", "rayado", "sin daños"].map(
+                  (cond) => (
+                    <label className="block" key={cond}>
+                      <input
+                        type="checkbox"
+                        className="mr-2 accent-[#480422]"
+                        checked={condiciones[cond]}
+                        onChange={(e) =>
+                          setCondiciones((c) => ({
+                            ...c,
+                            [cond]: e.target.checked,
+                          }))
+                        }
+                      />
+                      {cond.charAt(0).toUpperCase() + cond.slice(1)}
+                    </label>
+                  )
+                )}
+              </div>
             </div>
           </div>
+
+          <div className="flex gap-4">
+            <button
+              className="w-full h-12 bg-gray-300 rounded-lg hover:bg-gray-400"
+              onClick={() => setOpen(false)}
+            >
+              Cancelar
+            </button>
+            <button
+              className="w-full h-12 bg-[#88073f] text-gray-100 rounded-lg hover:bg-[#480422]"
+              onClick={() => {
+                generarPDF();
+                confirmarDevolucion();
+              }}
+            >
+              Devolver Préstamo
+            </button>
+          </div>
         </div>
-      )}
+      </Modal>
+
+      
     </div>
   );
 }
