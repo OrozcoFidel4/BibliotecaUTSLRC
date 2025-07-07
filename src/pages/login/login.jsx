@@ -44,7 +44,7 @@ const Login = () => {
           
 
           <div className="flex flex-row justify-around items-center mb-6">
-            <img src={LogoUT} className="h-12 w-auto object-contain border-r-2 border-gray-300 pr-2" alt="UT" />
+            <img src={LogoUT} className="h-12 w-auto object-contain border-r-2 border-gray-300 pr-4" alt="UT" />
             <img src={LogoBis} className="h-12 w-auto object-contain pl-2" alt="BIS"/>
           </div>
 
