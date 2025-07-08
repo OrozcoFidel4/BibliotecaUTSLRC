@@ -7,6 +7,9 @@ import { useLocation, Outlet } from "react-router";
 function Layout() {
   const location = useLocation();
   const currentPath = location.pathname;
+
+  
+
   return (
     <div className="h-screen flex">
       <Sidebar>

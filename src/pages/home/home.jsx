@@ -10,8 +10,17 @@ import { useNavigate } from "react-router";
 function Home() {
   const [prestamos, setPrestamos] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [expanded, setExpanded] = useState(() => window.innerWidth >= 1024);
 
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(min-width: 900px)");
+    const handleResize = () => setExpanded(mediaQuery.matches);
+    handleResize();
+    mediaQuery.addEventListener("change", handleResize);
+    return () => mediaQuery.removeEventListener("change", handleResize);
+  }, []);
 
   useEffect(() => {
     const fetchPrestamos = async () => {
@@ -58,9 +67,10 @@ const prestamosTardios = prestamos.filter((prestamo) => {
         <div className="text-xl mb-12 text-gray-500">Bienvenido, Jonh Doe</div>
 
 
-        <div className="flex flex-row justify-end mb-8 gap-4">
+        <div className={`flex justify-end mb-8 gap-4 ${expanded ? "flex-row" : "flex flex-col items-end"}`}>
 
-        <div className="flex flex-row gap-2 items-center border-r-2 border-gray-300 pr-4">
+
+        <div className={`flex flex-row gap-2 items-center  ${expanded ? "border-r-2 border-gray-300 pr-4" : " "}`}>
           <h2 className="text-2xl">Por Entregar Hoy:</h2>
           <div className="flex bg-green-600 w-12 h-12 rounded-sm items-center justify-center">
             <h2 className="text-gray-50 text-2xl font-bold">{cantidadPrestamosEntregaHoy}</h2>
@@ -79,23 +89,24 @@ const prestamosTardios = prestamos.filter((prestamo) => {
 
     
 
-      <div className="flex flex-row w-full h-80 justify-center gap-4 mb-4">
+      <div className={`w-full h-80 justify-center gap-4 mb-4 flex ${expanded ? "flex-row" : "flex-col h-96"}`}>
+
         
         {/* Botones */}
           <button 
             className="flex-1 flex flex-col items-center justify-center bg-[#88073f] shadow shadow-xl rounded-xl hover:bg-[#480422]"
             onClick={() => navigate("/libros")}>
             <GraduationCap size={140} className="text-gray-100" />
-            <h1 className="text-2xl font-semibold text-gray-100">Crear</h1>
-            <h1 className="text-2xl font-semibold text-gray-100">Préstamo</h1>
+            <h1 className="text-2xl font-semibold text-gray-100">Crear {!expanded && "Préstamo"}</h1>
+            <h1 className="text-2xl font-semibold text-gray-100">{expanded && "Prestamo"}</h1>
           </button>
 
           <button 
             className="flex-1 flex flex-col items-center justify-center bg-[#88073f] shadow shadow-xl rounded-xl hover:bg-[#480422]"
             onClick={() => navigate("/prestamos")}>
             <LibraryBig size={140} className="text-gray-100" />
-            <h1 className="text-2xl font-semibold text-gray-100">Devolver</h1>
-            <h1 className="text-2xl font-semibold text-gray-100">Préstamo</h1>
+            <h1 className="text-2xl font-semibold text-gray-100">Devolver {!expanded && "Préstamo"}</h1>
+            <h1 className="text-2xl font-semibold text-gray-100">{expanded && "Préstamo"}</h1>
           </button>
 
         

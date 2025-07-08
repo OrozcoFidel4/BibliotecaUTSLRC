@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 
 function Historial() {
+  const [expanded, setExpanded] = useState(() => window.innerWidth >= 1024);
+
   const [historial, setHistorial] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -12,6 +14,14 @@ function Historial() {
   const [paginaActual, setPaginaActual] = useState(1);
   const [totalPaginas, setTotalPaginas] = useState(1);
   const [limitePorPagina, setLimitePorPagina] = useState(10);
+
+  useEffect(() => {
+      const mediaQuery = window.matchMedia("(min-width: 1024px)");
+      const handleResize = () => setExpanded(mediaQuery.matches);
+      handleResize();
+      mediaQuery.addEventListener("change", handleResize);
+      return () => mediaQuery.removeEventListener("change", handleResize);
+    }, []);
 
   useEffect(() => {
     const fetchHistorial = async () => {
@@ -75,7 +85,10 @@ function Historial() {
       <div className="text-xl mb-4 text-gray-500">Historial de Préstamos</div>
 
       {/* Filtros */}
-      <div className="flex flex-wrap gap-4 mb-6 self-end">
+
+      
+      
+      <div className={`flex flex-wrap gap-4 mb-6 self-end ${expanded ? "flex" : "hidden"} overflow-hidden`}>
         <input
           className="bg-white w-64 px-4 py-2 rounded-lg shadow-md "
           type="search"
