@@ -15,13 +15,14 @@ function Prestamos() {
     roto: false,
     manchado: false,
     mojado: false,
+    rayado:false,
+    sin_daños:false,
   });
 
   const generarPDF = () => {
     const doc = new jsPDF();
 
-    const { titulo, autor, ISBN, nombre_solicitante, fecha_prestamo } =
-      prestamoSeleccionado;
+    const { titulo, autor, ISBN, nombre_solicitante, fecha_prestamo } = prestamoSeleccionado;
 
     doc.setFontSize(16);
     doc.text("Reporte de Devolución de Libro", 14, 20, );
@@ -35,20 +36,20 @@ function Prestamos() {
 
     const daños = Object.entries(condiciones)
       .filter(([_, marcado]) => marcado)
-      .map(([clave]) => clave.charAt(0).toUpperCase() + clave.slice(1));
+      .map(([clave]) => [clave.replace("_", " ").toUpperCase()]);
 
     autoTable(doc, {
       startY: 75,
       head: [["Daños reportados", "Importe"]],
-      body: daños.length ? daños.map((d) => [d]) : [["Sin daños reportados"]],
+      body: daños.length ? daños.map((d) => [d]) : [["Sin Daños"]],
       headStyles: {
-        fillColor: "#537473", // RGB del color #88073f
-        textColor: 255, // Blanco
-        halign: "center", // Alineación opcional
+        fillColor: "#537473", 
+        textColor: 255, 
+        halign: "center", 
       },
       bodyStyles: {
-        lineColor: [0, 0, 0], // Color del borde (negro)
-        lineWidth: 0.2, // Grosor del borde
+        lineColor: [0, 0, 0], 
+        lineWidth: 0.2, 
         textColor: [50, 50, 50],
       },
       styles: {
@@ -258,21 +259,36 @@ function Prestamos() {
               <div className="flex flex-col justify-between ">
                 <h4 className="font-semibold mb-1">Multas Aplicables</h4>
 
-                {["roto", "manchado", "mojado", "rayado", "sin daños"].map(
+                {["roto", "manchado", "mojado", "rayado", "sin_daños"].map(
                   (cond) => (
                     <label className="block" key={cond}>
                       <input
                         type="checkbox"
                         className="mr-2 accent-[#480422]"
                         checked={condiciones[cond]}
-                        onChange={(e) =>
-                          setCondiciones((c) => ({
-                            ...c,
+                        onChange={(e) => {
+                          const updated = {
+                            ...condiciones,
                             [cond]: e.target.checked,
-                          }))
-                        }
+                          };
+
+                          // Si se marca otro daño, desmarcar "sin_daños"
+                          if (cond !== "sin_daños" && e.target.checked) {
+                            updated.sin_daños = false;
+                          }
+
+                          // Si se marca "sin_daños", desmarcar todos los demás
+                          if (cond === "sin_daños" && e.target.checked) {
+                            Object.keys(updated).forEach((key) => {
+                              if (key !== "sin_daños") updated[key] = false;
+                            });
+                          }
+
+                          setCondiciones(updated);
+                        }}
                       />
-                      {cond.charAt(0).toUpperCase() + cond.slice(1)}
+                      {cond.replace("_", " ").charAt(0).toUpperCase() + cond.replace("_", " ").slice(1)}
+
                     </label>
                   )
                 )}

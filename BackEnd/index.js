@@ -220,7 +220,14 @@ app.get('/prestamos/activos', async (req, res) => {
 
 // API Libros devolucion 
 app.put("/prestamos/devolver", async (req, res) => {
-  const { ISBN, nombre_solicitante, fecha_prestamo } = req.body;
+  const {
+    ISBN,
+    nombre_solicitante,
+    fecha_prestamo,
+    condiciones = {}
+  } = req.body;
+
+  const { roto = false, manchado = false, mojado = false } = condiciones;
 
   if (!ISBN || !nombre_solicitante || !fecha_prestamo) {
     return res.status(400).json({ message: "Faltan datos para identificar el préstamo" });
@@ -239,21 +246,31 @@ app.put("/prestamos/devolver", async (req, res) => {
 
     const fechaActual = new Date().toISOString().split("T")[0];
 
-    // 2. Insertar en historial_prestamos
+    // Insertar en historial con daños
     await connection.query(
-      `INSERT INTO historial_prestamos (ISBN, nombre_solicitante, fecha_prestamo, fecha_devolucion)
-       VALUES (?, ?, ?, ?)`,
-      [ISBN, nombre_solicitante, fecha_prestamo_sql, fechaActual]
+      `INSERT INTO historial_prestamos (
+         ISBN, nombre_solicitante, fecha_prestamo, fecha_devolucion,
+         roto, manchado, mojado
+       ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [
+        ISBN,
+        nombre_solicitante,
+        fecha_prestamo_sql,
+        fechaActual,
+        roto,
+        manchado,
+        mojado
+      ]
     );
 
-    // 3. Eliminar de prestamos
+    // Eliminar préstamo activo
     await connection.query(
       `DELETE FROM prestamos
        WHERE ISBN = ? AND nombre_solicitante = ? AND DATE(fecha_prestamo) = ?`,
       [ISBN, nombre_solicitante, fecha_prestamo_sql]
     );
 
-    // 4. Actualizar el stock del libro
+    // Actualizar stock
     await connection.query(
       `UPDATE libros_limpios
        SET cantidad_total = cantidad_total + 1
@@ -264,12 +281,13 @@ app.put("/prestamos/devolver", async (req, res) => {
     await connection.commit();
     connection.release();
 
-    res.json({ message: "Libro devuelto, préstamo archivado y stock actualizado" });
+    res.json({ message: "Libro devuelto, daños registrados, stock actualizado" });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Error al procesar la devolución" });
   }
 });
+
 
 // Función para convertir fecha ISO a YYYY-MM-DD
 function formatearFechaSQL(fechaISO) {
