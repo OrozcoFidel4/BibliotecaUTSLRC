@@ -227,7 +227,7 @@ app.put("/prestamos/devolver", async (req, res) => {
     condiciones = {}
   } = req.body;
 
-  const { roto = false, manchado = false, mojado = false } = condiciones;
+  const { roto = false, manchado = false, mojado = false, rayado=false, retraso=false } = condiciones;
 
   if (!ISBN || !nombre_solicitante || !fecha_prestamo) {
     return res.status(400).json({ message: "Faltan datos para identificar el préstamo" });
@@ -250,8 +250,8 @@ app.put("/prestamos/devolver", async (req, res) => {
     await connection.query(
       `INSERT INTO historial_prestamos (
          ISBN, nombre_solicitante, fecha_prestamo, fecha_devolucion,
-         roto, manchado, mojado
-       ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+         roto, manchado, mojado, rayado, retraso
+       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         ISBN,
         nombre_solicitante,
@@ -259,7 +259,9 @@ app.put("/prestamos/devolver", async (req, res) => {
         fechaActual,
         roto,
         manchado,
-        mojado
+        mojado,
+        rayado,
+        retraso
       ]
     );
 
@@ -306,7 +308,7 @@ app.get('/historial', async (req, res) => {
     search = '',
     isbn = '',
     fechaDesde = '',
-    fechaHasta = ''
+    fechaHasta = '',
   } = req.query;
 
   try {
