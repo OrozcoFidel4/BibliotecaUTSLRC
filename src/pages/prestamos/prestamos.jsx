@@ -10,22 +10,24 @@ function Prestamos() {
   const [loading, setLoading] = useState(true);
   const [busqueda, setBusqueda] = useState("");
   const [open, setOpen] = useState(false);
+  const [esTardio, setEsTardio] = useState(false);
   const [prestamoSeleccionado, setPrestamoSeleccionado] = useState(null);
   const [condiciones, setCondiciones] = useState({
     roto: false,
     manchado: false,
     mojado: false,
-    rayado:false,
-    sin_daños:false,
+    rayado: false,
+    sin_daños: false,
   });
 
   const generarPDF = () => {
     const doc = new jsPDF();
 
-    const { titulo, autor, ISBN, nombre_solicitante, fecha_prestamo } = prestamoSeleccionado;
+    const { titulo, autor, ISBN, nombre_solicitante, fecha_prestamo } =
+      prestamoSeleccionado;
 
     doc.setFontSize(16);
-    doc.text("Reporte de Devolución de Libro", 14, 20, );
+    doc.text("Reporte de Devolución de Libro", 14, 20);
 
     doc.setFontSize(12);
     doc.text(`Título: ${titulo}`, 14, 35);
@@ -34,22 +36,32 @@ function Prestamos() {
     doc.text(`Solicitante: ${nombre_solicitante}`, 14, 56);
     doc.text(`Fecha de préstamo: ${formatearFecha(fecha_prestamo)}`, 14, 63);
 
-    const daños = Object.entries(condiciones)
+    let daños = Object.entries(condiciones)
       .filter(([_, marcado]) => marcado)
       .map(([clave]) => [clave.replace("_", " ").toUpperCase()]);
+
+    // Si el préstamo fue tardío, agregarlo
+    if (esPrestamoTardio(prestamoSeleccionado.fecha_devolucion)) {
+      daños.push(["ENTREGA TARDÍA"]);
+    }
+
+    // Si no hay daños ni tardanza
+    if (daños.length === 0) {
+      daños = [["SIN DAÑOS"]];
+    }
 
     autoTable(doc, {
       startY: 75,
       head: [["Daños reportados", "Importe"]],
       body: daños.length ? daños.map((d) => [d]) : [["Sin Daños"]],
       headStyles: {
-        fillColor: "#537473", 
-        textColor: 255, 
-        halign: "center", 
+        fillColor: "#537473",
+        textColor: 255,
+        halign: "center",
       },
       bodyStyles: {
-        lineColor: [0, 0, 0], 
-        lineWidth: 0.2, 
+        lineColor: [0, 0, 0],
+        lineWidth: 0.2,
         textColor: [50, 50, 50],
       },
       styles: {
@@ -117,12 +129,25 @@ function Prestamos() {
 
   const abrirModal = (prestamo) => {
     setPrestamoSeleccionado(prestamo);
-    setCondiciones({ roto: false, manchado: false, mojado: false });
+    setCondiciones({
+      roto: false,
+      manchado: false,
+      mojado: false,
+      rayado: false,
+      sin_daños: false,
+    });
+
+    // Verifica si la devolución es tardía
+    const esTarde = esPrestamoTardio(prestamo.fecha_devolucion);
+    setEsTardio(esTarde);
+
     setOpen(true);
   };
 
   const confirmarDevolucion = async () => {
     try {
+      const retraso = esPrestamoTardio(prestamoSeleccionado.fecha_devolucion);
+
       const res = await fetch("http://localhost:4000/prestamos/devolver", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -130,7 +155,11 @@ function Prestamos() {
           ISBN: prestamoSeleccionado.ISBN,
           nombre_solicitante: prestamoSeleccionado.nombre_solicitante,
           fecha_prestamo: prestamoSeleccionado.fecha_prestamo,
-          condiciones: condiciones,
+          condiciones: {
+            ...condiciones,
+            retraso: retraso,
+          }
+          
         }),
       });
 
@@ -259,6 +288,17 @@ function Prestamos() {
               <div className="flex flex-col justify-between ">
                 <h4 className="font-semibold mb-1">Multas Aplicables</h4>
 
+                {esTardio && (
+                  <label className="block">
+                    <input
+                      type="checkbox"
+                      className="mr-2 accent-[#480422]"
+                      checked="true"
+                    />
+                    Entrega tardía
+                  </label>
+                )}
+
                 {["roto", "manchado", "mojado", "rayado", "sin_daños"].map(
                   (cond) => (
                     <label className="block" key={cond}>
@@ -287,8 +327,8 @@ function Prestamos() {
                           setCondiciones(updated);
                         }}
                       />
-                      {cond.replace("_", " ").charAt(0).toUpperCase() + cond.replace("_", " ").slice(1)}
-
+                      {cond.replace("_", " ").charAt(0).toUpperCase() +
+                        cond.replace("_", " ").slice(1)}
                     </label>
                   )
                 )}
@@ -315,8 +355,6 @@ function Prestamos() {
           </div>
         </div>
       </Modal>
-
-      
     </div>
   );
 }

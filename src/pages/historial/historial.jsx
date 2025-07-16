@@ -268,7 +268,7 @@ function Historial() {
                     {prestamoSeleccionado?.retraso === 1 && <p className="text-md text-gray-500 mr-4">• Entrega Tardía</p>}
                     {prestamoSeleccionado?.roto === 1 && <p className="text-md text-gray-500 mr-4">• Roto</p>}
                     {prestamoSeleccionado?.manchado === 1 && <p className="text-md text-gray-500 mr-4">• Manchado</p>}
-                    {prestamoSeleccionado?.roto === 1 && <p className="text-md text-gray-500 mr-4">• Mojado</p>}
+                    {prestamoSeleccionado?.mojado === 1 && <p className="text-md text-gray-500 mr-4">• Mojado</p>}
                     {prestamoSeleccionado?.rayado === 1 && <p className="text-md text-gray-500 mr-4">• Rayado</p>}  
                   </div>
 
