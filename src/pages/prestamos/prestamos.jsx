@@ -20,59 +20,77 @@ function Prestamos() {
     sin_daños: false,
   });
 
-  const generarPDF = () => {
-    const doc = new jsPDF();
+ const generarPDF = () => {
+  const doc = new jsPDF();
 
-    const { titulo, autor, ISBN, nombre_solicitante, fecha_prestamo } =
-      prestamoSeleccionado;
+  const { titulo, autor, ISBN, nombre_solicitante, fecha_prestamo, fecha_devolucion } = prestamoSeleccionado;
 
-    doc.setFontSize(16);
-    doc.text("Reporte de Devolución de Libro", 14, 20);
+  doc.setFontSize(16);
+  doc.text("Reporte de Devolución de Libro", 14, 20);
 
-    doc.setFontSize(12);
-    doc.text(`Título: ${titulo}`, 14, 35);
-    doc.text(`Autor: ${autor}`, 14, 42);
-    doc.text(`ISBN: ${ISBN}`, 14, 49);
-    doc.text(`Solicitante: ${nombre_solicitante}`, 14, 56);
-    doc.text(`Fecha de préstamo: ${formatearFecha(fecha_prestamo)}`, 14, 63);
+  doc.setFontSize(12);
+  doc.text(`Título: ${titulo}`, 14, 35);
+  doc.text(`Autor: ${autor}`, 14, 42);
+  doc.text(`ISBN: ${ISBN}`, 14, 49);
+  doc.text(`Solicitante: ${nombre_solicitante}`, 14, 56);
+  doc.text(`Fecha de préstamo: ${formatearFecha(fecha_prestamo)}`, 14, 63);
 
-    let daños = Object.entries(condiciones)
-      .filter(([_, marcado]) => marcado)
-      .map(([clave]) => [clave.replace("_", " ").toUpperCase()]);
-
-    // Si el préstamo fue tardío, agregarlo
-    if (esPrestamoTardio(prestamoSeleccionado.fecha_devolucion)) {
-      daños.push(["ENTREGA TARDÍA"]);
-    }
-
-    // Si no hay daños ni tardanza
-    if (daños.length === 0) {
-      daños = [["SIN DAÑOS"]];
-    }
-
-    autoTable(doc, {
-      startY: 75,
-      head: [["Daños reportados", "Importe"]],
-      body: daños.length ? daños.map((d) => [d]) : [["Sin Daños"]],
-      headStyles: {
-        fillColor: "#537473",
-        textColor: 255,
-        halign: "center",
-      },
-      bodyStyles: {
-        lineColor: [0, 0, 0],
-        lineWidth: 0.2,
-        textColor: [50, 50, 50],
-      },
-      styles: {
-        fontSize: 10,
-        cellPadding: 6,
-      },
-    });
-
-    const fecha = new Date().toISOString().slice(0, 10);
-    doc.save(`Devolucion_${ISBN}_${fecha}.pdf`);
+  const importes = {
+    roto: "$30",
+    manchado: "$20",
+    mojado: "$25",
+    rayado: "$15",
+    sin_daños: "$0",
   };
+
+  let daños = Object.entries(condiciones)
+    .filter(([_, marcado]) => marcado)
+    .map(([clave]) => [
+      clave.replace("_", " ").toUpperCase(),
+      importes[clave] || "$0",
+    ]);
+
+  const diasRetraso = esPrestamoTardio(fecha_devolucion);
+  if (diasRetraso > 0) {
+    daños.push([`ENTREGA TARDÍA (${diasRetraso} días)`, `$${diasRetraso * 10}`]);
+  }
+
+  if (daños.length === 0) {
+    daños = [["SIN DAÑOS", "$0"]];
+  }
+
+  autoTable(doc, {
+    startY: 75,
+    head: [["Daños reportados", "Importe"]],
+    body: daños,
+    headStyles: {
+      fillColor: "#537473",
+      textColor: 255,
+      halign: "center",
+    },
+    bodyStyles: {
+      lineColor: [0, 0, 0],
+      lineWidth: 0.2,
+      textColor: [50, 50, 50],
+    },
+    styles: {
+      fontSize: 10,
+      cellPadding: 6,
+    },
+  });
+
+  const total = daños.reduce((sum, [_, importe]) => {
+    const valor = parseFloat(importe.replace("$", "")) || 0;
+    return sum + valor;
+  }, 0);
+
+  doc.setFontSize(12);
+  doc.text(`Total: $${total}`, 14, doc.lastAutoTable.finalY + 10);
+
+  const fecha = new Date().toISOString().slice(0, 10);
+  doc.save(`Devolucion_${ISBN}_${fecha}.pdf`);
+};
+
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(min-width: 1024px)");
@@ -111,13 +129,16 @@ function Prestamos() {
   };
 
   function esPrestamoTardio(fechaDevolucion) {
-    const hoy = new Date();
-    hoy.setHours(0, 0, 0, 0);
+  const hoy = new Date();
+  hoy.setHours(0, 0, 0, 0);
 
-    const fechaDev = new Date(fechaDevolucion);
-    fechaDev.setHours(0, 0, 0, 0);
+  const fechaDev = new Date(fechaDevolucion);
+  fechaDev.setHours(0, 0, 0, 0);
 
-    return fechaDev.getTime() < hoy.getTime();
+  const diferenciaMs = hoy - fechaDev;
+  const dias = Math.floor(diferenciaMs / (1000 * 60 * 60 * 24));
+
+  return dias > 0 ? dias : 0;
   }
 
   const tipoTitulo = (texto) =>
@@ -293,7 +314,8 @@ function Prestamos() {
                     <input
                       type="checkbox"
                       className="mr-2 accent-[#480422]"
-                      checked="true"
+                      checked={true}
+                      readOnly
                     />
                     Entrega tardía
                   </label>

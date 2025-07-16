@@ -99,47 +99,53 @@ function Libros() {
   };
 
   const validarYConfirmarPrestamo = async () => {
-    try {
-      const responseAlumno = await fetch(
-        `http://localhost:4000/alumnos?nombre=${encodeURIComponent(
-          nombreSolicitante
-        )}`
-      );
-      const resultAlumno = await responseAlumno.json();
+  try {
+    const hoy = obtenerFechaHoy();
 
-      if (!resultAlumno.data || resultAlumno.data.length === 0) {
-        alert("El alumno no existe. Verifica el nombre.");
-        return;
-      }
-
-      const responsePrestamo = await fetch("http://localhost:4000/prestamos", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ISBN: libroSeleccionado.ISBN,
-          fechaPrestamo,
-          fechaDevolucion,
-          nombreSolicitante,
-        }),
-      });
-
-      if (!responsePrestamo.ok) {
-        const errorData = await responsePrestamo.json();
-        alert("Error al realizar préstamo: " + errorData.message);
-        return;
-      }
-
-      alert("Préstamo realizado correctamente");
-      setOpen(false);
-      setPaginaActual(1);
-      setSearch("");
-    } catch (error) {
-      console.error("Error en el préstamo:", error);
-      alert("Ocurrió un error al registrar el préstamo.");
+    if (fechaDevolucion < hoy) {
+      alert("La fecha de devolución no puede ser anterior al día de hoy.");
+      return;
     }
 
-    setOpen(false)
-  };
+    const responseAlumno = await fetch(
+      `http://localhost:4000/alumnos?nombre=${encodeURIComponent(
+        nombreSolicitante
+      )}`
+    );
+    const resultAlumno = await responseAlumno.json();
+
+    if (!resultAlumno.data || resultAlumno.data.length === 0) {
+      alert("El alumno no existe. Verifica el nombre.");
+      return;
+    }
+
+    const responsePrestamo = await fetch("http://localhost:4000/prestamos", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ISBN: libroSeleccionado.ISBN,
+        fechaPrestamo,
+        fechaDevolucion,
+        nombreSolicitante,
+      }),
+    });
+
+    if (!responsePrestamo.ok) {
+      const errorData = await responsePrestamo.json();
+      alert("Error al realizar préstamo: " + errorData.message);
+      return;
+    }
+
+    alert("Préstamo realizado correctamente");
+    setOpen(false);
+    setPaginaActual(1);
+    setSearch("");
+  } catch (error) {
+    console.error("Error en el préstamo:", error);
+    alert("Ocurrió un error al registrar el préstamo.");
+  }
+};
+
 
   const inputRef = useRef(null);
 
@@ -155,6 +161,12 @@ function Libros() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+
+  const obtenerFechaHoy = () => {
+    const hoy = new Date();
+    return hoy.toISOString().split("T")[0]; // formato 'YYYY-MM-DD'
+  };
+
 
   return (
     <div className="flex flex-col min-h-screen w-full px-16 pt-6">
@@ -313,6 +325,7 @@ function Libros() {
                     className="w-full bg-white rounded-lg p-2 rounded mb-2 shadow-lg"
                     value={fechaDevolucion}
                     onChange={(e) => setFechaDevolucion(e.target.value)}
+                    min={obtenerFechaHoy()}
                   />
                 </div>
               </div>

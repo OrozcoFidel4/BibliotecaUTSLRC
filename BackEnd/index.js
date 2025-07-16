@@ -92,10 +92,10 @@ app.get("/libros", async (req, res) => {
         locacion,
         cantidad_total
       FROM libros_limpios
-      WHERE titulo LIKE ? OR autor LIKE ?
+      WHERE titulo LIKE ? OR autor LIKE ? OR ISBN LIKE ?
       LIMIT ? OFFSET ?
       `,
-      [searchQuery, searchQuery, parsedLimit, parsedOffset]
+      [searchQuery, searchQuery, searchQuery, parsedLimit, parsedOffset]
     );
 
     // Conteo total sin necesidad de subconsulta
