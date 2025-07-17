@@ -15,14 +15,20 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = async (email, password) => {
-    await axios.post("http://localhost:4000/api/login", { email, password }, {
-      withCredentials: true
-    });
-    const res = await axios.get("http://localhost:4000/api/usuario", {
-      withCredentials: true
-    });
-    setUsuario(res.data);
+    try {
+      await axios.post("http://localhost:4000/api/login", { email, password }, {
+        withCredentials: true
+      });
+      const res = await axios.get("http://localhost:4000/api/usuario", {
+        withCredentials: true
+      });
+      setUsuario(res.data);
+    } catch (error) {
+      console.error("Login error:", error.response?.data || error.message);
+      alert("Error al iniciar sesión: " + (error.response?.data?.error || error.message));
+    }
   };
+
 
 const logout = async () => {
   await axios.post("http://localhost:4000/api/logout", {}, {

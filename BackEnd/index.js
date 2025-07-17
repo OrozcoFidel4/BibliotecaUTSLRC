@@ -121,32 +121,61 @@ app.get("/libros", async (req, res) => {
 
 
 // API Login Request
-app.post('/api/login', (req,res)=> {
-    console.log('BODY', req.body);
-    const {email, password} = req.body;
+app.post('/api/login', async (req, res) => {
+  const { email, password } = req.body;
 
- if (email === 'admin@gmail.com' && password === '123456') {
-    console.log(email,password)
-    res.cookie('token', 'valor-de-token', {
+  try {
+    const [rows] = await db.query(
+      'SELECT id, email FROM usuarios WHERE email = ? AND password = ?',
+      [email, password]
+    );
+
+    if (rows.length === 0) {
+      return res.status(401).json({ error: 'Credenciales incorrectas' });
+    }
+
+    const usuario = rows[0];
+
+    // Guarda solo el ID en la cookie
+    res.cookie('token', usuario.id.toString(), {
       httpOnly: true,
       sameSite: 'Lax',
-      maxAge: 24 * 60 * 60 * 1000 // 1 día
+      maxAge: 24 * 60 * 60 * 1000, // 1 día
     });
-    return res.json({ message: 'Login exitoso' });
-  }
 
-  return res.status(401).json({ error: 'Credenciales incorrectas' });
+    return res.json({ message: 'Login exitoso' });
+  } catch (error) {
+    console.error('Error en login:', error);
+    return res.status(500).json({ error: 'Error del servidor' });
+  }
 });
 
 
 // Ruta protegida
-app.get('/api/usuario', (req, res) => {
-  const { token } = req.cookies;
-  if (token === 'valor-de-token') {
-    return res.json({ email: 'admin@email.com' });
+app.get('/api/usuario', async (req, res) => {
+  const { token } = req.cookies; // el token ahora es el ID
+
+  if (!token) {
+    return res.status(401).json({ error: 'No autorizado' });
   }
-  return res.status(401).json({ error: 'No autorizado' });
+
+  try {
+    const [rows] = await db.query(
+      'SELECT id, email FROM usuarios WHERE id = ?',
+      [token]
+    );
+
+    if (rows.length === 0) {
+      return res.status(401).json({ error: 'Usuario no encontrado' });
+    }
+
+    return res.json(rows[0]);
+  } catch (error) {
+    console.error('Error al obtener usuario:', error);
+    return res.status(500).json({ error: 'Error del servidor' });
+  }
 });
+
 
 // Ruta limpia usuarios
 app.post('/api/logout', (req, res) => {
