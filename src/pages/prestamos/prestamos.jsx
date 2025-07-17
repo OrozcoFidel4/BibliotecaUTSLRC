@@ -10,7 +10,6 @@ function Prestamos() {
   const [loading, setLoading] = useState(true);
   const [busqueda, setBusqueda] = useState("");
   const [open, setOpen] = useState(false);
-  const [esTardio, setEsTardio] = useState(false);
   const [prestamoSeleccionado, setPrestamoSeleccionado] = useState(null);
   const [condiciones, setCondiciones] = useState({
     roto: false,
@@ -18,79 +17,76 @@ function Prestamos() {
     mojado: false,
     rayado: false,
     sin_daños: false,
+    retraso: false,  // solo booleano, sin cálculo automático
   });
 
- const generarPDF = () => {
-  const doc = new jsPDF();
+  const generarPDF = () => {
+    const doc = new jsPDF();
+    const { titulo, autor, ISBN, nombre_solicitante, fecha_prestamo } = prestamoSeleccionado;
 
-  const { titulo, autor, ISBN, nombre_solicitante, fecha_prestamo, fecha_devolucion } = prestamoSeleccionado;
+    doc.setFontSize(16);
+    doc.text("Reporte de Devolución de Libro", 14, 20);
 
-  doc.setFontSize(16);
-  doc.text("Reporte de Devolución de Libro", 14, 20);
+    doc.setFontSize(12);
+    doc.text(`Título: ${titulo}`, 14, 35);
+    doc.text(`Autor: ${autor}`, 14, 42);
+    doc.text(`ISBN: ${ISBN}`, 14, 49);
+    doc.text(`Solicitante: ${nombre_solicitante}`, 14, 56);
+    doc.text(`Fecha de préstamo: ${formatearFecha(fecha_prestamo)}`, 14, 63);
 
-  doc.setFontSize(12);
-  doc.text(`Título: ${titulo}`, 14, 35);
-  doc.text(`Autor: ${autor}`, 14, 42);
-  doc.text(`ISBN: ${ISBN}`, 14, 49);
-  doc.text(`Solicitante: ${nombre_solicitante}`, 14, 56);
-  doc.text(`Fecha de préstamo: ${formatearFecha(fecha_prestamo)}`, 14, 63);
+    const importes = {
+      roto: "$30",
+      manchado: "$20",
+      mojado: "$25",
+      rayado: "$15",
+      sin_daños: "$0",
+      retraso: "$10",  // importe fijo si se marca
+    };
 
-  const importes = {
-    roto: "$30",
-    manchado: "$20",
-    mojado: "$25",
-    rayado: "$15",
-    sin_daños: "$0",
+    let daños = Object.entries(condiciones)
+      .filter(([_, marcado]) => marcado)
+      .map(([clave]) => [
+        clave === "retraso"
+          ? "ENTREGA TARDÍA"
+          : clave.replace("_", " ").toUpperCase(),
+        importes[clave] || "$0",
+      ]);
+
+    if (daños.length === 0) {
+      daños = [["SIN DAÑOS", "$0"]];
+    }
+
+    autoTable(doc, {
+      startY: 75,
+      head: [["Daños reportados", "Importe"]],
+      body: daños,
+      headStyles: {
+        fillColor: "#537473",
+        textColor: 255,
+        halign: "center",
+      },
+      bodyStyles: {
+        lineColor: [0, 0, 0],
+        lineWidth: 0.2,
+        textColor: [50, 50, 50],
+      },
+      styles: {
+        fontSize: 10,
+        cellPadding: 6,
+      },
+    });
+
+    const total = daños.reduce((sum, [_, importe]) => {
+      const valor = parseFloat(importe.replace("$", "")) || 0;
+      return sum + valor;
+    }, 0);
+
+    doc.setFontSize(12);
+    doc.text(`Total: $${total}`, 14, doc.lastAutoTable.finalY + 10);
+
+    const fecha = new Date().toISOString().slice(0, 10);
+    doc.save(`Devolucion_${ISBN}_${fecha}.pdf`);
   };
-
-  let daños = Object.entries(condiciones)
-    .filter(([_, marcado]) => marcado)
-    .map(([clave]) => [
-      clave.replace("_", " ").toUpperCase(),
-      importes[clave] || "$0",
-    ]);
-
-  const diasRetraso = esPrestamoTardio(fecha_devolucion);
-  if (diasRetraso > 0) {
-    daños.push([`ENTREGA TARDÍA (${diasRetraso} días)`, `$${diasRetraso * 10}`]);
-  }
-
-  if (daños.length === 0) {
-    daños = [["SIN DAÑOS", "$0"]];
-  }
-
-  autoTable(doc, {
-    startY: 75,
-    head: [["Daños reportados", "Importe"]],
-    body: daños,
-    headStyles: {
-      fillColor: "#537473",
-      textColor: 255,
-      halign: "center",
-    },
-    bodyStyles: {
-      lineColor: [0, 0, 0],
-      lineWidth: 0.2,
-      textColor: [50, 50, 50],
-    },
-    styles: {
-      fontSize: 10,
-      cellPadding: 6,
-    },
-  });
-
-  const total = daños.reduce((sum, [_, importe]) => {
-    const valor = parseFloat(importe.replace("$", "")) || 0;
-    return sum + valor;
-  }, 0);
-
-  doc.setFontSize(12);
-  doc.text(`Total: $${total}`, 14, doc.lastAutoTable.finalY + 10);
-
-  const fecha = new Date().toISOString().slice(0, 10);
-  doc.save(`Devolucion_${ISBN}_${fecha}.pdf`);
-};
-
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(min-width: 1024px)");
@@ -128,25 +124,14 @@ function Prestamos() {
     });
   };
 
-  function esPrestamoTardio(fechaDevolucion) {
-  const hoy = new Date();
-  hoy.setHours(0, 0, 0, 0);
-
-  const fechaDev = new Date(fechaDevolucion);
-  fechaDev.setHours(0, 0, 0, 0);
-
-  const diferenciaMs = hoy - fechaDev;
-  const dias = Math.floor(diferenciaMs / (1000 * 60 * 60 * 24));
-
-  return dias > 0 ? dias : 0;
-  }
-
   const tipoTitulo = (texto) =>
-    texto
-      .toLowerCase()
-      .split(" ")
-      .map((palabra) => palabra.charAt(0).toUpperCase() + palabra.slice(1))
-      .join(" ");
+    typeof texto === "string"
+      ? texto
+          .toLowerCase()
+          .split(" ")
+          .map((palabra) => palabra.charAt(0).toUpperCase() + palabra.slice(1))
+          .join(" ")
+      : "";
 
   const abrirModal = (prestamo) => {
     setPrestamoSeleccionado(prestamo);
@@ -156,19 +141,14 @@ function Prestamos() {
       mojado: false,
       rayado: false,
       sin_daños: false,
+      retraso: false, // no marcado automático
     });
-
-    // Verifica si la devolución es tardía
-    const esTarde = esPrestamoTardio(prestamo.fecha_devolucion);
-    setEsTardio(esTarde);
-
     setOpen(true);
   };
 
   const confirmarDevolucion = async () => {
     try {
-      const retraso = esPrestamoTardio(prestamoSeleccionado.fecha_devolucion);
-
+      // Envía condiciones tal cual, retraso es booleano controlado manualmente
       const res = await fetch("http://localhost:4000/prestamos/devolver", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -176,11 +156,7 @@ function Prestamos() {
           ISBN: prestamoSeleccionado.ISBN,
           nombre_solicitante: prestamoSeleccionado.nombre_solicitante,
           fecha_prestamo: prestamoSeleccionado.fecha_prestamo,
-          condiciones: {
-            ...condiciones,
-            retraso: retraso,
-          }
-          
+          condiciones: condiciones,
         }),
       });
 
@@ -194,8 +170,7 @@ function Prestamos() {
           (p) =>
             !(
               p.ISBN === prestamoSeleccionado.ISBN &&
-              p.nombre_solicitante ===
-                prestamoSeleccionado.nombre_solicitante &&
+              p.nombre_solicitante === prestamoSeleccionado.nombre_solicitante &&
               p.fecha_prestamo === prestamoSeleccionado.fecha_prestamo
             )
         )
@@ -245,7 +220,7 @@ function Prestamos() {
                 <tr
                   key={`${p.ISBN}-${p.nombre_solicitante}-${p.fecha_prestamo}`}
                   className={`hover:bg-gray-100 ${
-                    esPrestamoTardio(p.fecha_devolucion) ? "bg-red-100" : ""
+                    false /* ya no usamos retraso automático */ ? "bg-red-100" : ""
                   }`}
                   onClick={() => abrirModal(p)}
                 >
@@ -270,9 +245,7 @@ function Prestamos() {
                   <td className="py-2 px-4 border-t border-gray-400 text-gray-500 text-sm">
                     <button
                       className="h-8 w-24 mx-2 bg-[#88073f] text-gray-100 rounded-lg hover:bg-[#480422]"
-                      onClick={() => {
-                        abrirModal(p);
-                      }}
+                      onClick={() => abrirModal(p)}
                     >
                       Devolver
                     </button>
@@ -287,12 +260,12 @@ function Prestamos() {
       <Modal open={open} onClose={() => setOpen(false)}>
         <div className="text-center w-160">
           <h3 className="text-lg font-black">Devolver Préstamo</h3>
-          <p className="text-sm text-gray-500 ">
+          <p className="text-sm text-gray-500">
             Captura los datos para la devolución del préstamo.
           </p>
 
           <div className="flex flex-row justify-stretch items-start mt-8 mb-8">
-            {open && (
+            {open && prestamoSeleccionado && (
               <div className="text-left mx-3 basis-3/5 flex-none border-r-2 border-gray-300 ">
                 <h4 className="font-semibold mb-1">Titulo</h4>
                 <p className="text-md text-gray-500 pb-2 mr-4">
@@ -306,53 +279,49 @@ function Prestamos() {
             )}
 
             <div className="text-left mx-3 flex-1">
-              <div className="flex flex-col justify-between ">
+              <div className="flex flex-col justify-between">
                 <h4 className="font-semibold mb-1">Multas Aplicables</h4>
 
-                {esTardio && (
-                  <label className="block">
-                    <input
-                      type="checkbox"
-                      className="mr-2 accent-[#480422]"
-                      checked={true}
-                      readOnly
-                    />
-                    Entrega tardía
-                  </label>
-                )}
+                {["retraso", "roto", "manchado", "mojado", "rayado", "sin_daños"].map(
+                  (cond) => {
+                    const label =
+                      cond === "sin_daños"
+                        ? "Sin daños"
+                        : cond === "retraso"
+                        ? "Entrega tardía"
+                        : cond.charAt(0).toUpperCase() + cond.slice(1);
 
-                {["roto", "manchado", "mojado", "rayado", "sin_daños"].map(
-                  (cond) => (
-                    <label className="block" key={cond}>
-                      <input
-                        type="checkbox"
-                        className="mr-2 accent-[#480422]"
-                        checked={condiciones[cond]}
-                        onChange={(e) => {
+                    return (
+                      <label className="block" key={cond}>
+                        <input
+                          type="checkbox"
+                          className="mr-2 accent-[#480422]"
+                          checked={!!condiciones[cond]}
+                          onChange={(e) => {
                           const updated = {
                             ...condiciones,
                             [cond]: e.target.checked,
                           };
 
-                          // Si se marca otro daño, desmarcar "sin_daños"
-                          if (cond !== "sin_daños" && e.target.checked) {
+                          // Si se selecciona cualquier otro que NO sea "sin_daños" ni "retraso", desmarcar "sin_daños"
+                          if (cond !== "sin_daños" && cond !== "retraso" && e.target.checked) {
                             updated.sin_daños = false;
                           }
 
-                          // Si se marca "sin_daños", desmarcar todos los demás
+                          // Si se selecciona "sin_daños", desmarcar todos excepto "sin_daños" y "retraso"
                           if (cond === "sin_daños" && e.target.checked) {
                             Object.keys(updated).forEach((key) => {
-                              if (key !== "sin_daños") updated[key] = false;
+                              if (key !== "sin_daños" && key !== "retraso") updated[key] = false;
                             });
                           }
 
                           setCondiciones(updated);
                         }}
-                      />
-                      {cond.replace("_", " ").charAt(0).toUpperCase() +
-                        cond.replace("_", " ").slice(1)}
-                    </label>
-                  )
+                        />
+                        {label}
+                      </label>
+                    );
+                  }
                 )}
               </div>
             </div>
