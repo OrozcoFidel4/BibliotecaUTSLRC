@@ -10,6 +10,9 @@ import Modal from "./Modal";
 const SidebarContext = createContext();
 
 export default function Sidebar({ children }) {
+
+  const { usuario, loadingUsuario } = useAuth();
+
   const [open, setOpen] = useState(false);
   const { logout } = useAuth();
 
@@ -38,6 +41,16 @@ export default function Sidebar({ children }) {
     // Clean up on unmount
     return () => mediaQuery.removeEventListener("change", handleResize);
   }, []);
+
+  const nombreTurno = (id) => {
+    if (id === 1) return "Admin";
+    if (id === 2) return "Matutino";
+    if (id === 2) return "Vespertino";
+    return "Invitado";
+  };
+
+  // Uso:
+  const turno = nombreTurno(usuario.id);
 
   return (
     <aside
@@ -92,8 +105,8 @@ export default function Sidebar({ children }) {
           `}
           >
             <div className="leading-4">
-              <h4 className="font-semibold text-gray-100">John Doe</h4>
-              <span className="text-xs text-gray-100">johndoe@gmail.com</span>
+              <h4 className="font-semibold text-gray-100">Usuario {turno}</h4>
+              <span className="text-xs text-gray-100">{loadingUsuario ? "..." : usuario?.email || ""}</span>
             </div>
             <button
               className="h-auto w-auto p-2 rounded-lg hover:bg-[#3d5352]"
