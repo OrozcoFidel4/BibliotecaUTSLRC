@@ -45,7 +45,7 @@ export default function Sidebar({ children }) {
   const nombreTurno = (id) => {
     if (id === 1) return "Admin";
     if (id === 2) return "Matutino";
-    if (id === 2) return "Vespertino";
+    if (id === 3) return "Vespertino";
     return "Invitado";
   };
 
