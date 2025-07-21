@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import Modal from "../../components/Modal";
+import toast, { Toaster } from "react-hot-toast";
 
 function Libros() {
   const [expanded, setExpanded] = useState(() => window.innerWidth >= 1024);
@@ -103,7 +104,7 @@ function Libros() {
     const hoy = obtenerFechaHoy();
 
     if (fechaDevolucion < hoy) {
-      alert("La fecha de devolución no puede ser anterior al día de hoy.");
+      toast.error("La fecha de devolución no puede ser anterior al día de hoy.");
       return;
     }
 
@@ -115,7 +116,7 @@ function Libros() {
     const resultAlumno = await responseAlumno.json();
 
     if (!resultAlumno.data || resultAlumno.data.length === 0) {
-      alert("El alumno no existe. Verifica el nombre.");
+      toast.error("El alumno no existe. Verifica el nombre.");
       return;
     }
 
@@ -132,17 +133,17 @@ function Libros() {
 
     if (!responsePrestamo.ok) {
       const errorData = await responsePrestamo.json();
-      alert("Error al realizar préstamo: " + errorData.message);
+      toast.error('Error al realizar préstamo')
       return;
     }
 
-    alert("Préstamo realizado correctamente");
+    toast.success('Prestamo realizado correctamente!')
     setOpen(false);
     setPaginaActual(1);
     setSearch("");
   } catch (error) {
     console.error("Error en el préstamo:", error);
-    alert("Ocurrió un error al registrar el préstamo.");
+    toast.error('Error al realizar préstamo')
   }
 };
 
@@ -170,6 +171,8 @@ function Libros() {
 
   return (
     <div className="flex flex-col min-h-screen w-full px-16 pt-6">
+
+      <div><Toaster/></div>
       <div className="font-bold text-5xl mb-2">Libros</div>
       <div className="text-xl mb-4 text-gray-500">
         Listado de Libros en Biblioteca

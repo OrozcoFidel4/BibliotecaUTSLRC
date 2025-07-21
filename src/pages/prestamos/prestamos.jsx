@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import toast, { Toaster } from 'react-hot-toast';
 
 import Modal from "../../components/Modal";
 
@@ -146,6 +147,7 @@ function Prestamos() {
     setOpen(true);
   };
 
+
   const confirmarDevolucion = async () => {
     try {
       // Envía condiciones tal cual, retraso es booleano controlado manualmente
@@ -175,10 +177,14 @@ function Prestamos() {
             )
         )
       );
-      setOpen(false);
+
+      setOpen(false)
+      generarPDF()
+      toast.success('Prestamo devuelto con éxito!')
+
     } catch (error) {
       console.error(error);
-      alert(`Hubo un error al devolver el libro: ${error.message}`);
+      toast.error(`Hubo un error al devolver el libro: ${error.message}`);
     }
   };
 
@@ -186,6 +192,8 @@ function Prestamos() {
 
   return (
     <div className="flex flex-col h-full w-full px-16 pt-6">
+      <div><Toaster/></div>
+
       <div className="font-bold text-5xl mb-2">Préstamos</div>
       <div className="text-xl mb-4 text-gray-500">
         Listado de Préstamos en Activo
@@ -200,8 +208,14 @@ function Prestamos() {
         value={busqueda}
         onChange={(e) => setBusqueda(e.target.value)}
       />
-
+      
       <div className="flex-grow w-full">
+      {loading ? (
+        <p>Cargando Préstamos Activos</p> 
+      ) : prestamos.length === 0 ? ( 
+      <p>No hay Préstamos Activos</p>
+      ) : (
+
         <div className="overflow-hidden rounded-lg shadow-md mb-8">
           <table className="min-w-full bg-white">
             <thead>
@@ -254,7 +268,7 @@ function Prestamos() {
               ))}
             </tbody>
           </table>
-        </div>
+        </div> )}
       </div>
 
       <Modal open={open} onClose={() => setOpen(false)}>
@@ -335,9 +349,8 @@ function Prestamos() {
               Cancelar
             </button>
             <button
-              className="w-full h-12 bg-[#88073f] text-gray-100 rounded-lg hover:bg-[#480422]"
+              className="w-full h-12 bg-[#537473] text-gray-100 rounded-lg hover:bg-[#3d5352]"
               onClick={() => {
-                generarPDF();
                 confirmarDevolucion();
               }}
             >
